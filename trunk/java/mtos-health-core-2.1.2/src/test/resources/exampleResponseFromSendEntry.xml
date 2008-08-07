@@ -1,0 +1,118 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<entry xmlns='http://www.w3.org/2005/Atom' xmlns:ccr='urn:astm-org:CCR' xmlns:batch='http://schemas.google.com/gdata/batch' xmlns:h9m='http://schemas.google.com/health/metadata'>
+    <id>https://www.google.com/health/feeds/register/default/sStaYP_HXuE</id>
+    <published>2008-03-12T23:31:20.529Z</published>
+    <updated>2008-03-12T23:31:20.533Z</updated>
+    <category scheme='http://schemas.google.com/g/2005#kind' term='http://schemas.google.com/health/kinds#register'/>
+    <title type='text'>Posted on Wed, 12 Mar 2008 16:31:36 -0700</title>
+    <link rel='http://schemas.google.com/health/data#complete' type='application/atom+xml' href='https://www.google.com/health/feeds/register/default/-/%7Bhttp%3A%2F%2Fschemas.google.com%2Fg%2F2005%23kind%7Dhttp%3A%2F%2Fschemas.google.com%2Fhealth%2Fkinds%23register'/>
+    <link rel='alternate' type='text/xml;charset=UTF-8' href='https://www.google.com/health/feeds/register/default/sStaYP_HXuE?alt=ccr'/>
+    <link rel='self' type='application/atom+xml' href='https://www.google.com/health/feeds/register/default/sStaYP_HXuE'/>
+    <link rel='edit' type='application/atom+xml' href='https://www.google.com/health/feeds/register/default/sStaYP_HXuE'/>
+    <author>
+        <name>h9demo.mttaboronline.com</name>
+        <email>h9demo.mttaboronline.com</email>
+    </author>
+    <contributor>
+        <name>h9demo.mttaboronline.com</name>
+        <email>h9demo.mttaboronline.com</email>
+    </contributor>
+    <ContinuityOfCareRecord xmlns='urn:astm-org:CCR'>
+        <CCRDocumentObjectID>D6E5D510-592D-C613-DB46-A4CF2AC91C1D</CCRDocumentObjectID>
+        <Language>
+            <Text>English</Text>
+        </Language>
+        <Version>0.1</Version>
+        <DateTime>
+            <Type/>
+            <ExactDateTime>2007-05-25T11:57:20Z</ExactDateTime>
+        </DateTime>
+        <Patient>
+            <ActorID>D6E5D510-592D-C613-DB46-A4CF2AC91C1D</ActorID>
+        </Patient>
+        <From>
+            <ActorLink/>
+        </From>
+        <Body>
+            <Medications>
+                <Medication>
+                    <CCRDataObjectID>52</CCRDataObjectID>
+                    <DateTime>
+                        <Type>
+                            <Text>Prescription Date</Text>
+                        </Type>
+                        <ExactDateTime>2007-03-09T12:00:00Z</ExactDateTime>
+                    </DateTime>
+                    <Type>
+                        <Text>Medication</Text>
+                    </Type>
+                    <Source>
+                        <Actor>
+                            <ActorID>Rx History Supplier</ActorID>
+                        </Actor>
+                    </Source>
+                    <Product>
+                        <ProductName>
+                            <Text>TIZANIDINE HCL 4 MG TABLET TEV</Text>
+                        </ProductName>
+                        <Form>
+                            <Text>TAKE 1 TABLET BY MOUTH AT BEDTIME AS NEEDED FOR MUSCLE SPASM</Text>
+                        </Form>
+                    </Product>
+                    <Quantity>
+                        <Value>1</Value>
+                    </Quantity>
+                    <Directions>
+                        <Direction>
+                            <Description>
+                                <Text>TAKE 1 TABLET BY MOUTH AT BEDTIME AS NEEDED FOR MUSCLE SPASM</Text>
+                            </Description>
+                            <DoseIndicator>
+                                <Text>1</Text>
+                            </DoseIndicator>
+                        </Direction>
+                    </Directions>
+                    <PatientInstructions>
+                        <Instruction>
+                            <Text>TAKE 1 TABLET BY MOUTH AT BEDTIME AS NEEDED FOR MUSCLE SPASM</Text>
+                        </Instruction>
+                    </PatientInstructions>
+                </Medication>
+            </Medications>
+        </Body>
+        <Actors>
+            <Actor>
+                <ActorObjectID>D6E5D510-592D-C613-DB46-A4CF2AC91C1D</ActorObjectID>
+                <Person>
+                    <Name>
+                        <CurrentName>
+                            <Given>Test5</Given>
+                            <Family>Surescripts</Family>
+                        </CurrentName>
+                    </Name>
+                    <DateOfBirth>
+                        <Type/>
+                        <ExactDateTime>1955-01-02T12:00:00Z</ExactDateTime>
+                    </DateOfBirth>
+                    <Gender/>
+                </Person>
+                <Address>
+                    <Type>
+                        <Text>Home</Text>
+                    </Type>
+                </Address>
+                <Telephone>
+                    <Value>123-456-7890</Value>
+                </Telephone>
+                <EMail>
+                    <Value>ghs@mttaboros.com</Value>
+                </EMail>
+                <URL>
+                    <Value>http://mttaboros.com</Value>
+                </URL>
+                <Status/>
+                <Source/>
+            </Actor>
+        </Actors>
+    </ContinuityOfCareRecord>
+</entry>

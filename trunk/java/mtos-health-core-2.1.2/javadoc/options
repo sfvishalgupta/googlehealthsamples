@@ -1,0 +1,21 @@
+-classpath '/Volumes/Storage/aaronzoller/customers/linus/dev/h9-authsub-1.4.2/core/target/classes:/Users/aaronzoller/.m2/repository/commons-lang/commons-lang/2.3/commons-lang-2.3.jar:/Users/aaronzoller/.m2/repository/jdom/jdom/1.0/jdom-1.0.jar:/Users/aaronzoller/.m2/repository/commons-logging/commons-logging/1.0.4/commons-logging-1.0.4.jar:/Users/aaronzoller/.m2/repository/rome/rome/0.9/rome-0.9.jar:/Users/aaronzoller/.m2/repository/commons-codec/commons-codec/1.2/commons-codec-1.2.jar:/Users/aaronzoller/.m2/repository/commons-httpclient/commons-httpclient/3.1/commons-httpclient-3.1.jar'
+ -encoding
+'ISO-8859-1'
+-protected
+-source
+'1.4'
+-sourcepath
+'/Volumes/Storage/aaronzoller/customers/linus/dev/h9-authsub-1.4.2/core/src/main/java'
+-author
+-bottom
+'Copyright &#169; 2008. All Rights Reserved.'
+-charset
+'ISO-8859-1'
+-d
+'/Volumes/Storage/aaronzoller/customers/linus/dev/h9-authsub-1.4.2/core/target/site/apidocs'
+-doctitle
+'Mt Tabor OS - Health - Core 2.1.2 API'
+-use
+-version
+-windowtitle
+'Mt Tabor OS - Health - Core 2.1.2 API'

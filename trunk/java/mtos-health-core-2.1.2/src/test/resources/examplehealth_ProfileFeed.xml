@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:openSearch="http://a9.com/-/spec/opensearchrss/1.0/" xmlns:ccr="urn:astm-org:CCR">
+  <id>https://www.google.com/h9/feeds/profile/digest</id>
+  <updated>2007-09-29T07:39:43.873</updated>
+  <category scheme="http://schemas.google.com/g/2005#kind" term="http://schemas.google.com/health/kinds#profile" />
+  <link rel="http://schemas.google.com/g/2005#feed" type="application/atom+xml" href="https://www.google.com/h9/feeds/profile/digest" />
+  <link rel="http://schemas.google.com/g/2005#post" type="application/atom+xml" href="https://www.google.com/h9/feeds/profile/digest" />
+  <link rel="self" type="application/atom+xml" href="https://www.google.com/h9/feeds/profile/digest" />
+  <openSearch:startIndex>1</openSearch:startIndex>
+  <entry>
+    <id>https://www.google.com/h9/feeds/profile/digest/8fHoTKpOUF8_digest</id>
+    <category scheme="http://schemas.google.com/g/2005#kind" term="http://schemas.google.com/health/kinds#profile" />
+    <link rel="self" type="application/atom+xml" href="https://www.google.com/h9/feeds/profile/digest/8fHoTKpOUF8_digest" />
+    <link rel="edit" type="application/atom+xml" href="https://www.google.com/h9/feeds/profile/digest/8fHoTKpOUF8_digest" />
+    <ContinuityOfCareRecord xmlns="urn:astm-org:CCR">
+      <Body>
+        <Problems>
+          <Problem>
+            <Type />
+            <Description>
+              <Text>Diabetes</Text>
+              <Code>
+                <Value>250.0</Value>
+                <CodingSystem>ICD9</CodingSystem>
+              </Code>
+              <Code>
+                <Value>V77.1</Value>
+                <CodingSystem>ICD9_Narrower</CodingSystem>
+              </Code>
+            </Description>
+            <Status>
+              <Text>ACTIVE</Text>
+            </Status>
+            <HealthStatus>
+              <Description />
+            </HealthStatus>
+          </Problem>
+        </Problems>
+        <Alerts>
+          <Alert>
+            <Type>
+              <Text>Allergy</Text>
+            </Type>
+            <Description />
+            <Status>
+              <Text>ACTIVE</Text>
+            </Status>
+            <Agent>
+              <Products>
+                <Product>
+                  <Type />
+                  <Description />
+                  <Status />
+                  <Product>
+                    <ProductName>
+                      <Text>Penicillins</Text>
+                    </ProductName>
+                  </Product>
+                </Product>
+              </Products>
+            </Agent>
+            <Reaction>
+              <Description />
+              <Severity>
+                <Text>Severe</Text>
+              </Severity>
+            </Reaction>
+          </Alert>
+        </Alerts>
+        <Medications>
+          <Medication>
+            <Type />
+            <Description />
+            <Status>
+              <Text>ACTIVE</Text>
+            </Status>
+            <Product>
+              <ProductName>
+                <Text>Ibuprofen</Text>
+              </ProductName>
+              <Strength>
+                <Units />
+                <StrengthSequencePosition>0</StrengthSequencePosition>
+                <VariableStrengthModifier />
+              </Strength>
+            </Product>
+            <Directions>
+              <Direction>
+                <Description />
+                <DeliveryMethod />
+                <Dose>
+                  <Units />
+                  <DoseSequencePosition>0</DoseSequencePosition>
+                  <VariableDoseModifier />
+                </Dose>
+                <Route>
+                  <Text>By mouth</Text>
+                  <Code>
+                    <Value>C38288</Value>
+                    <CodingSystem>FDA</CodingSystem>
+                  </Code>
+                  <RouteSequencePosition>0</RouteSequencePosition>
+                  <MultipleRouteModifier />
+                </Route>
+              </Direction>
+            </Directions>
+          </Medication>
+          <Medication>
+            <CCRDataObjectID>52</CCRDataObjectID>
+            <DateTime>
+              <Type>
+                <Text>Prescription Date</Text>
+              </Type>
+              <ExactDateTime>2007-03-09T12:00:00Z</ExactDateTime>
+            </DateTime>
+            <Type>
+              <Text>Medication</Text>
+            </Type>
+            <Description />
+            <Status />
+            <Source>
+              <Description />
+              <Actor>
+                <ActorID>Rx History Supplier</ActorID>
+              </Actor>
+              <DateTime>
+                <Type />
+              </DateTime>
+            </Source>
+            <Product>
+              <ProductName>
+                <Text>TIZANIDINE HCL 4 MG TABLET TEV</Text>
+                <Code>
+                  <Value>-1</Value>
+                  <CodingSystem>omi-coding</CodingSystem>
+                  <Version>2005</Version>
+                </Code>
+              </ProductName>
+              <Form>
+                <Text>TAKE 1 TABLET BY MOUTH AT BEDTIME AS NEEDED FOR MUSCLE SPASM</Text>
+                <FormSequencePosition>0</FormSequencePosition>
+                <MultipleFormModifier />
+              </Form>
+            </Product>
+            <Directions>
+              <Direction>
+                <Description>
+                  <Text>TAKE 1 TABLET BY MOUTH AT BEDTIME AS NEEDED FOR MUSCLE SPASM</Text>
+                </Description>
+                <DeliveryMethod />
+              </Direction>
+            </Directions>
+          </Medication>
+        </Medications>
+        <Immunizations>
+          <Immunization>
+            <Type />
+            <Description />
+            <Status />
+            <Product>
+              <ProductName>
+                <Text>Yellow fever vaccine</Text>
+                <Code>
+                  <Value>37</Value>
+                  <CodingSystem>HL7</CodingSystem>
+                </Code>
+                <Code>
+                  <Value>90717</Value>
+                  <CodingSystem>CPT</CodingSystem>
+                </Code>
+              </ProductName>
+            </Product>
+            <Directions>
+              <Direction>
+                <Description />
+                <DeliveryMethod />
+              </Direction>
+            </Directions>
+          </Immunization>
+        </Immunizations>
+      </Body>
+    </ContinuityOfCareRecord>
+  </entry>
+</feed>
