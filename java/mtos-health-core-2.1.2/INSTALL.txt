@@ -1,0 +1,70 @@
+Installing Mt Tabor Google Health Java Client Library
+=====================================================
+
+Table of Contents
+------------------
+  1. Package Contents
+  2. Requirements
+  3. Installation
+  4. Building (optional)
+
+PACKAGE CONTENTS:
+-----------------
+The Mt Tabor Google Health Java Client Library enables clients running
+Java 1.4.2 to interact with Google Health using Google Data APIs
+("GData"). This package includes:
+  1. Java client source under "src/main/java".
+  2. Java client test sources under "src/test/java".
+  3. Test resources files under "src/test/resources".
+  4. Java client library, "target/mtos-health-core-2.1.2.jar".
+  5. Maven build configuration ("pom.xml") to compile the source code.
+  6. Javadocs for client source "javadoc".
+
+REQUIREMENTS:
+-------------
+The client library depends on the following external libraries on top of
+the standard Java 1.4.2 installation. If using Maven, these can be fetched
+automatically as part of the build process.
+
+1. ROME 0.9 (rome-0.9.jar)
+   https://rome.dev.java.net/
+2. JDOM 1.0 (jdom.jar)
+   http://www.jdom.org/downloads/index.html
+3. Apache Commons Lang Library 2.3 (commons-lang-2.3.jar)
+   http://commons.apache.org/lang/
+4. Apache Commons HttpClient 3.1 (commons-httpclient-3.1.jar)
+   http://jakarta.apache.org/httpcomponents/httpclient-3.x/downloads.html
+5. Apache Commons Codec 1.2 (commons-codec-1.2.jar)
+   http://commons.apache.org/codec/
+6. Apache Commons Logging 1.0.4  (commons-logging-1.0.4.jar)
+   http://commons.apache.org/logging/
+7. JUnit 3.8.1 (junit.jar)
+   This is required only if you want to run the package's unit tests.
+   http://downloads.sourceforge.net/junit/junit3.8.1.zip
+
+INSTALLATION:
+-------------
+1. Unpack package archive to local folder.
+2. (Optional) Follow the instructions below under BUILDING to build the Java
+   client library. If you use Maven as part of your regular build processes,
+   you're done after completing BUILDING.
+3. Place the Java client library in "target" in a directory in your class path
+   or update your class path to point to "target".
+4. Place the Java client library dependencies in a directory in your class
+   path or update your class path to point to the directories containing them.
+   If you used Maven to download the dependencies as part of BUILDING, by
+   default they will be in subdirectories under ~/.m2/repository.
+
+BUILDING (OPTIONAL):
+--------------------
+1. Download and install Maven if Maven isn't already present on your system.
+   See: http://maven.apache.org/download.html
+(The remainder of instructions should be run from a command line.)
+2. Change directory into the unpacked package archive. You should see "pom.xml"
+   in the directory listing.
+3. Type: mvn clean install
+   If this is the first time you've run Maven, this could take a while as
+   Maven downloads base packages and the client library's dependencies.
+4. If you use Maven as part of your build processes, you're done; the client
+   library is built and installed in your Maven repository. If you do not use
+   Maven regularly, continue with the instructions under INSTALLATION above.

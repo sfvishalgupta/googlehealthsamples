@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:openSearch="http://a9.com/-/spec/opensearchrss/1.0/" xmlns:ccr="urn:astm-org:CCR">
+  <id>https://www.google.com/h9/feeds/profile/digest</id>
+  <updated>2007-08-01T19:55:57.873</updated>
+  <category scheme="http://schemas.google.com/g/2005#kind" term="http://schemas.google.com/health/kinds#profile" />
+  <link rel="http://schemas.google.com/g/2005#feed" type="application/atom+xml" href="https://www.google.com/h9/feeds/profile/digest" />
+  <link rel="http://schemas.google.com/g/2005#post" type="application/atom+xml" href="https://www.google.com/h9/feeds/profile/digest" />
+  <link rel="self" type="application/atom+xml" href="https://www.google.com/h9/feeds/profile/digest" />
+  <openSearch:startIndex>1</openSearch:startIndex>
+  <entry xmlns="http://schemas.google.com/health/metadata">
+    <id>https://www.google.com/h9/feeds/profile/digest/XVRbj6yuScg</id>
+    <published>2007-08-01T19:55:57.783Z</published>
+    <updated>2007-08-01T19:55:57.873Z</updated>
+    <category scheme="http://schemas.google.com/g/2005#kind" term="http://schemas.google.com/health/kinds#profile" />
+    <category scheme="http://schemas.google.com/g/2005#kind" term="http://schemas.google.com/health/kinds#register" />
+    <title type="text">Title:Ibuprofen</title>
+    <content type="text">Content:Ibuprofen</content>
+    <link rel="alternate" type="text/xml;charset=UTF-8" href="https://www.google.com/h9/feeds/profile/digest/XVRbj6yuScg?alt=ccr" />
+    <link rel="related" type="text/xml;charset=UTF-8" href="https://www.google.com/h9/feeds/profile" />
+    <link rel="self" type="application/atom+xml" href="https://www.google.com/h9/feeds/profile/digest/XVRbj6yuScg" />
+    <link rel="edit" type="application/atom+xml" href="https://www.google.com/h9/feeds/profile/digest/XVRbj6yuScg" />
+    <author>
+      <name>me</name>
+    </author>
+    <ContinuityOfCareRecord xmlns="urn:astm-org:CCR">
+      <Language />
+      <DateTime>
+        <Type />
+      </DateTime>
+      <Patient />
+      <Body>
+        <Medications>
+          <Medication>
+            <Type />
+            <Description />
+            <Status>
+              <Text>ACTIVE</Text>
+            </Status>
+            <Product>
+              <ProductName>
+                <Text>Ibuprofen</Text>
+              </ProductName>
+              <Strength>
+                <Units />
+                <StrengthSequencePosition>0</StrengthSequencePosition>
+                <VariableStrengthModifier />
+              </Strength>
+            </Product>
+            <Directions>
+              <Direction>
+                <Description />
+                <DeliveryMethod />
+                <Dose>
+                  <Units />
+                  <DoseSequencePosition>0</DoseSequencePosition>
+                  <VariableDoseModifier />
+                </Dose>
+                <Route>
+                  <Text>By mouth</Text>
+                  <Code>
+                    <Value>C38288</Value>
+                    <CodingSystem>FDA</CodingSystem>
+                  </Code>
+                  <RouteSequencePosition>0</RouteSequencePosition>
+                  <MultipleRouteModifier />
+                </Route>
+              </Direction>
+            </Directions>
+          </Medication>
+        </Medications>
+      </Body>
+    </ContinuityOfCareRecord>
+    <ProfileMetaData />
+  </entry>
+</feed>
+

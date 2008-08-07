@@ -1,0 +1,5 @@
+Mt Tabor OS Health Core Library
+Copyright 2007 Mt Tabor OS
+
+This product includes software developed by
+Google (http://www.google.com)
