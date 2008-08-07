@@ -1,0 +1,45 @@
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>HealthDemo</title>
+  <link href="/css/lean.css" media="screen" rel="stylesheet" type="text/css"/>
+  <script src="/css/proto.js" type="text/javascript"></script>
+</head>
+<body>
+<table>
+<tr><td colspan=2><p><a href="/revoke">Unlink accounts</a></p></td></tr>
+<tr><td>
+<div id="col2_internal">
+  <h1 class="header">Your Google Health record contains {{ profile.feed.entry|length }} item(s):</h1>
+  <a href="/download">Download to your local computer...</a>
+</div>
+<div id="header">
+ {% for e in profile.feed.entry %}
+ {% for p in e.ContinuityOfCareRecord.Body.Medications.Medication %}
+   {% for pr in p.Product %}
+  {{  p.Status.Text.T|lower|capfirst }} Medication: {{ pr.ProductName.Text.T}}
+   {% endfor %}
+  {% endfor %}
+  <br>
+ {% endfor %}
+ {% for e in profile.feed.entry %}
+ {% for p in e.ContinuityOfCareRecord.Body.Problems.Problem %}
+ {{  p.Status.Text.T|lower|capfirst }} Condition: {{ p.Description.Text.T }}
+ {% if  p.Description.Text.HRP %}
+  <a href="https://www.google.com/health/ref/{{ p.Description.Text.HRP }}">Reference for {{ p.Description.Text.T }}</a>
+  {% endif %}
+
+  {% endfor %}
+  <br>
+ {% endfor %}
+ {% for e in profile.feed.entry %}
+ {% for p in e.ContinuityOfCareRecord.Body.Alerts.Alert %}
+ {{  p.Status.Text.T|lower|capfirst }} Allergy: {{ p.Description.Text.T }} 
+ {% endfor %}
+  <br>
+ {% endfor %}
+
+</div>
+</td></tr></table>
+</body>
+</html>
