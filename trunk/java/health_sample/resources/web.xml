@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app id="HealthSample" version="2.4" xmlns="http://java.sun.com/xml/ns/j2ee">
+  <display-name>HealthSample</display-name>
+  <servlet>
+    <description></description>
+    <display-name>HealthSampleServlet</display-name>
+    <servlet-name>HealthSampleServlet</servlet-name>
+    <servlet-class>
+        sample.health.HealthSampleServlet
+    </servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>HealthSampleServlet</servlet-name>
+    <url-pattern>/</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>default</servlet-name>
+    <url-pattern>*.css</url-pattern>
+  </servlet-mapping>
+</web-app>
