@@ -9,9 +9,8 @@
 <%@ Import Namespace="System.IO" %>
 <%@ Import Namespace="System.Xml" %>
 <%@ Import Namespace="Google.GData.Client" %>
+<%@ Import Namespace="Google.GData.Health" %>
 <%@ Import Namespace="Google.GData.Extensions" %>
-
-
 
 <script runat="server">
 
@@ -41,14 +40,14 @@
         {
             XmlDocument ccrDoc = new XmlDocument();
             ccrDoc.LoadXml(Request.Form["ccr"]);
-            newNotice.ExtensionElements.Add(ccrDoc.DocumentElement);
+	    XmlExtension ext = new XmlExtension(ccrDoc.DocumentElement);
+            newNotice.ExtensionElements.Add(ext);
         }
-        
+	
         service.Insert(new Uri("https://www.google.com/h9/feeds/register/default"), newNotice);
 
         //blank the form elements since .NET loves to save state
         subject.Text = message.Text = ccr.Text = "";
-        
     }
     
 </script>
@@ -56,11 +55,11 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml" >
 <head runat="server">
-    <title>Google Code Samples: Google Health read profile sample</title>
+    <title>Google Health API - Send Notices Sample</title>
 </head>
 <body>
     <form id="form1" runat="server">
-    <h1>Google Health: Post Notices</h1>
+    <h1>Google Health API - Send Notices Sample</h1>
     <div>
     <%
         GotoAuthSubLink.Visible = false;
@@ -109,5 +108,46 @@
     </table>
     </div>
     </form>
+    
+Example CCR to post:<br>
+<textarea rows="30" cols="100">
+<ContinuityOfCareRecord xmlns='urn:astm-org:CCR'>
+<Body>
+<Problems>
+  <Problem>
+    <DateTime>
+      <Type>
+        <Text>Start date</Text>
+      </Type>
+      <ExactDateTime>2007-04-04T07:00:00Z</ExactDateTime>
+    </DateTime>
+    <DateTime>
+      <Type>
+        <Text>Stop date</Text>
+      </Type>
+      <ExactDateTime>2008-07-20T07:00:00Z</ExactDateTime>
+    </DateTime>
+    <Description>
+      <Code>
+        <Value>346.80</Value>
+        <CodingSystem>ICD9</CodingSystem>
+        <Version>2004</Version>
+      </Code>
+    </Description>
+    <Status><Text>Active</Text></Status>
+    <Source>
+      <Actor>
+        <ActorID>Harris Smith</ActorID>
+        <ActorRole>
+          <Text>Treating clinician</Text>
+        </ActorRole>
+      </Actor>
+    </Source>
+  </Problem>
+</Problems>
+</Body>
+</ContinuityOfCareRecord>
+</textarea>
+
 </body>
 </html>
