@@ -1,0 +1,117 @@
+<html>
+<head>
+<style type="text/css">
+* {
+ font-family:Helvetica;
+}
+body {
+  font-size:12px;
+}
+h1 {
+  margin:0;
+}
+a {
+  color:darkred;
+  font-weight:bold;
+}
+a:hover {
+  text-decoration:none;
+}
+table {
+  border:1px solid #000;
+  font:inherit;
+}
+th {
+  background-color:#000033;
+  color:#fff;
+}
+img {
+  vertical-align:middle;
+}
+#container {
+  width:300px;
+  text-align:center;
+}
+#header {
+  text-align:left;
+  float:left;
+}
+#reading {
+  width:150px;
+  vertical-align:middle;
+}
+.add_reading_form {
+  background-color:#eee;
+  border:10px solid #ccc;
+  width:260px;
+  padding:5px;
+}
+.highlight {
+  background-color:#ffcc00;
+}
+.nohighlight {
+  background-color:none;
+}
+</style>
+</head>
+<body>
+
+<center>
+
+<div id="container">
+
+<div id="header">
+  <div style="float:left;">
+    <h1>gPedometer</h1>
+    <span>powered by Google Health</span>
+  </div>
+  <div style="float:right;"><img src="/images/feet.png" align="right"></div>
+</div>
+
+{% if access_token %}
+<div style="float:right;"><a href="{{ revoke_token_link }}">Unlink profile</a></div>
+{% endif %}
+
+<hr style="clear:both;">
+
+{% if access_token %}
+<center>
+<form method="post" action="/fetch_data" class="add_reading_form">
+  Enter new reading: <input type="text" id="reading" name="reading"><br>
+  <input type="radio" name="unit" value="steps" checked> steps
+  <input type="radio" name="unit" value="miles"> miles
+  <input type="radio" name="unit" value="km"> km
+  <input type="radio" name="unit" value="minutes"> minutes<br>
+  <input type="submit" value="add" align="right">
+</form>
+</center>
+{% else %}
+<div style="margin-top:5em;">
+<form method="post" action="/get_oauth_token">
+  <input type="submit" value="Link my Health Profile">
+</form>
+</div>
+{% endif %}
+
+{% if data and access_token %}
+  <strong>RECENT PEDOMETER READINGS</strong>
+  <table cellpadding="5" align="center">
+  <th>Recorded</th><th>Type</th><th>Value</th><th>Unit</th>
+  {% for record in data %}
+  <tr class="{% cycle highlight,nohighlight %}">
+    <td>{{ record.date|slice:":10" }}</td><td>{{ record.name|slice:":12" }}</td>
+    <td align="center">{{ record.value }}</td>
+    <td>{{ record.unit }}</td>
+  </tr>
+  {% endfor %}
+  </table>
+{% else %}
+  {% if access_token and not data %}
+    <h3>No entries yet!</h3>
+  {% endif %}
+{% endif %}
+
+</center>
+
+</body>
+</html>
