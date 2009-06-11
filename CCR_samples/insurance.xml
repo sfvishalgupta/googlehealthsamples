@@ -1,0 +1,76 @@
+ <ContinuityOfCareRecord>
+    <Language>
+        <Text>English</Text>
+        <Code>
+            <Value>en</Value>
+            <CodingSystem>ISO-639-1</CodingSystem>
+        </Code>
+    </Language>
+    <Version>V1.0</Version>
+    <DateTime>
+        <ExactDateTime>2007-11-08T18:25:08Z</ExactDateTime>
+    </DateTime>
+    <Patient>
+        <ActorID>#subscriber actor id#</ActorID>
+    </Patient>
+    <Body>
+      <Payers>
+        <Payer>
+          <DateTime>
+            <Type><Text>Start date</Text></Type>
+            <ExactDateTime>2007-04-04</ExactDateTime>
+          </DateTime>
+          <DateTime>
+            <Type><Text>Stop date</Text></Type>
+            <ExactDateTime>2007-11-02</ExactDateTime>
+          </DateTime>
+          <IDs>
+            <Type><Text>Plan code</Text></Type>
+            <ID>255</ID>
+          </IDs>
+          <IDs>
+            <Type><Text>Group number</Text></Type>
+            <ID>A155</ID>
+          </IDs>
+          <IDs>
+            <Type><Text>Subscriber number</Text></Type>
+            <ID>B78-35-66</ID>
+          </IDs>
+          <Type>
+            <Text>Primary Health Insurance</Text>
+          </Type>
+          <Description>
+            <Text>HMO</Text>
+          </Description>
+          <Status>
+            <Text>Active</Text>
+          </Status>
+          <PaymentProvider>
+            <ActorID>#provider actor id#</ActorID>
+          </PaymentProvider>
+          <Subscriber>
+            <ActorID>#subscriber actor id#</ActorID>
+          </Subscriber>
+        </Payer>
+      </Payers>
+    </Body>
+    <Actors>
+      <Actor>
+        <ActorObjectID>#provider actor id#</ActorObjectID>
+        <Organization>
+          <Name>Blue Shield</Name>
+        </Organization>
+        <Telephone>
+          <Value>1-800-700-6000</Value>
+        </Telephone>
+      </Actor>
+      <Actor>
+        <ActorObjectID>#subscriber actor id#</ActorObjectID>
+        <Person>
+          <Name>
+            <DisplayName>John Smith</DisplayName>
+          </Name>
+        </Person>
+      </Actor>
+    </Actors>
+</ContinuityOfCareRecord>
