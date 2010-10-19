@@ -81,6 +81,9 @@ public final class HealthAndroidExample extends ListActivity {
   
   private Map<String, String> profiles = new LinkedHashMap<String, String>();
 
+  /** Id of the currently displayed dialog used by anonymous inner classes for dismissing. */
+  private int dialogId;
+
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -90,6 +93,9 @@ public final class HealthAndroidExample extends ListActivity {
 
   @Override
   protected Dialog onCreateDialog(int id) {
+    // Assign the class variable so the anonymous inner classes can access it.
+    dialogId = id;
+    
     Dialog dialog;
     AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
@@ -108,6 +114,9 @@ public final class HealthAndroidExample extends ListActivity {
 
       builder.setItems(names, new DialogInterface.OnClickListener() {
         public void onClick(DialogInterface dialog, int i) {
+          // Dismiss the dialog so that it will be renewed on re-display.
+          removeDialog(dialogId);
+          
           gotAccount(manager, accounts[i]);
         }
       });
@@ -119,7 +128,7 @@ public final class HealthAndroidExample extends ListActivity {
       builder.setTitle("Select a Health profile");
       
       String[] profileNames = profiles.values().toArray(new String[profiles.size()]);
-
+      
       builder.setItems(profileNames, new DialogInterface.OnClickListener() {
         public void onClick(DialogInterface dialog, int i) {
           String pid = profiles.keySet().toArray(new String[profiles.size()])[i];
@@ -131,6 +140,9 @@ public final class HealthAndroidExample extends ListActivity {
           editor.putString(PROFILE_PROPERTY, pid);
           editor.commit();
           
+          // Dismiss the dialog so that it will be renewed on re-display.
+          removeDialog(dialogId);
+          
           displayResults();
         }
       });
@@ -141,7 +153,7 @@ public final class HealthAndroidExample extends ListActivity {
     default:
       dialog = null;
     }
-
+    
     return dialog;
   }
   
@@ -169,7 +181,8 @@ public final class HealthAndroidExample extends ListActivity {
   }
 
   private void gotAccount(AccountManager manager, Account account) {
-    // Store the selected account so we don't have to ask for it again.
+    // Store the selected account so we don't have to ask for it between app
+    // restarts, unless the user wants a new one.
     SharedPreferences settings = getSharedPreferences(PREF, 0);
     SharedPreferences.Editor editor = settings.edit();
     editor.putString(ACCOUNT_PROPERTY, account.name);
@@ -237,6 +250,14 @@ public final class HealthAndroidExample extends ListActivity {
     return true;
   }
 
+  /**
+   * Called when a menu option is selected on main activity, which includes
+   * creating new results, refreshing the list of results from Google Health
+   * (i.e. retrieving results entered in Health directly while the app is
+   * running), choose a profile, and choose an account.
+   * 
+   * @see android.app.Activity#onOptionsItemSelected(android.view.MenuItem)
+   */
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     switch (item.getItemId()) {
@@ -332,7 +353,8 @@ public final class HealthAndroidExample extends ListActivity {
         }
       }
     }
-
+    
+    // Update the text view of the main activity with the list of test results.
     Test[] items = tests.toArray(new Test[tests.size()]);
     setListAdapter(new ArrayAdapter<Test>(this, R.layout.list_item, items));
 
