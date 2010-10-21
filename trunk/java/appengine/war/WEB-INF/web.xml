@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+  xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+  version="2.5">
+  
+  <servlet>
+    <servlet-name>Health Servlet</servlet-name>
+    <servlet-class>com.google.health.examples.appengine.HealthExampleServlet</servlet-class>
+  </servlet>
+  
+  <servlet-mapping>
+    <servlet-name>Health Servlet</servlet-name>
+    <url-pattern>/main</url-pattern>
+  </servlet-mapping>
+  
+  <filter>
+    <filter-name>OAuth Filter</filter-name>
+    <filter-class>com.google.health.examples.appengine.oauth.OAuthFilter</filter-class>
+    <init-param>
+      <param-name>keystoreFile</param-name>
+      <param-value>keystore.jks</param-value>
+    </init-param>
+    <init-param>
+      <param-name>keystorePassword</param-name>
+      <param-value>changeme</param-value>
+    </init-param>
+    <init-param>
+      <param-name>keystoreCertificateAlias</param-name>
+      <param-value>alias</param-value>
+    </init-param>
+    <init-param>
+      <param-name>oauthConsumerKey</param-name>
+      <param-value>mydomain.com</param-value>
+    </init-param>
+    <init-param>
+      <param-name>serviceName</param-name>
+      <!-- Should be weaver (H9) or health (production). -->
+      <param-value>weaver</param-value>
+    </init-param>
+  </filter>
+  
+  <filter-mapping>
+    <filter-name>OAuth Filter</filter-name>
+    <url-pattern>/main</url-pattern>
+  </filter-mapping>
+  
+  <welcome-file-list>
+    <welcome-file>index.html</welcome-file>
+  </welcome-file-list>
+</web-app>
