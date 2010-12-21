@@ -89,8 +89,9 @@ public class OAuthService {
    *
    * @param scope
    * @return Array containing OAuth token (index = 0) and token secret (index = 1)
+   * @throws OAuthException
    */
-  public String[] getRequestTokens(String scope) {
+  public String[] getRequestTokens(String scope) throws OAuthException {
     if (version != OAuthVersion.v1_0) {
       throw new IllegalStateException("OAuth version must be 1.0");
     }
@@ -104,8 +105,9 @@ public class OAuthService {
    * @param scope
    * @param callback
    * @return Array containing OAuth token (index = 0) and token secret (index = 1)
+   * @throws OAuthException
    */
-  public String[] getRequestTokens(String scope, String callback) {
+  public String[] getRequestTokens(String scope, String callback) throws OAuthException {
     if (version != OAuthVersion.v1_0a || Strings.isNullOrEmpty(callback)) {
       throw new IllegalStateException("OAuth version must be 1.0a, and the callback cannot be null");
     }
@@ -113,7 +115,7 @@ public class OAuthService {
     return _getRequestTokens(scope, callback);
   }
 
-  public String[] _getRequestTokens(String scope, String callback) {
+  public String[] _getRequestTokens(String scope, String callback) throws OAuthException {
     GoogleOAuthParameters params = new GoogleOAuthParameters();
     params.setOAuthConsumerKey(consumerKey);
     params.setScope(scope);
@@ -125,11 +127,7 @@ public class OAuthService {
     log.info("Retrieving request tokens.");
     logParameters(params);
 
-    try {
-      helper.getUnauthorizedRequestToken(params);
-    } catch (OAuthException e) {
-      log.severe(e.getMessage());
-    }
+    helper.getUnauthorizedRequestToken(params);
 
     log.info("Retrieved request tokens.");
     logParameters(params);
@@ -189,8 +187,9 @@ public class OAuthService {
    * @param tokenSecret
    * @param queryString
    * @return
+   * @throws OAuthException
    */
-  public String[] getAccessTokens(String tokenSecret, String queryString) {
+  public String[] getAccessTokens(String tokenSecret, String queryString) throws OAuthException {
     GoogleOAuthParameters params = new GoogleOAuthParameters();
     params.setOAuthConsumerKey(consumerKey);
     params.setOAuthConsumerSecret(consumerSecret);
@@ -203,13 +202,7 @@ public class OAuthService {
     logParameters(params);
 
     // Upgrade to access token.
-    String accessToken = "";
-    try {
-      accessToken = helper.getAccessToken(params);
-    } catch (OAuthException e) {
-      log.severe(e.getMessage());
-    }
-
+    String accessToken = helper.getAccessToken(params);
     log.info("Retrieved access tokens.");
     logParameters(params);
 
@@ -224,9 +217,10 @@ public class OAuthService {
    * @param token
    * @param tokenSecret
    * @return
+   * @throws OAuthException
    */
   public String getHttpAuthorizationHeader(String url, String method, String token,
-      String tokenSecret) {
+      String tokenSecret) throws OAuthException {
     log.info("Generating authorization header.");
 
     GoogleOAuthParameters params = new GoogleOAuthParameters();
@@ -237,28 +231,17 @@ public class OAuthService {
 
     logParameters(params);
 
-    String header = null;
-    try {
-      header = helper.getAuthorizationHeader(url.toString(), method, params);
-    } catch (OAuthException e) {
-      log.severe(e.getMessage());
-    }
-
+    String header = helper.getAuthorizationHeader(url.toString(), method, params);
     return header;
   }
 
-  public void revokeToken(String token, String tokenSecret) {
+  public void revokeToken(String token, String tokenSecret) throws OAuthException {
     GoogleOAuthParameters params = new GoogleOAuthParameters();
     params.setOAuthConsumerKey(consumerKey);
     params.setOAuthConsumerSecret(consumerSecret);
     params.setOAuthToken(token);
     params.setOAuthTokenSecret(tokenSecret);
-
-    try {
-      helper.revokeToken(params);
-    } catch (OAuthException e) {
-      log.severe(e.getMessage());
-    }
+    helper.revokeToken(params);
   }
 
   public String getTokenInfo(String token, String tokenSecret) throws Exception {
@@ -274,9 +257,6 @@ public class OAuthService {
 
     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
     conn.setRequestProperty("Authorization", header);
-
-    System.out.println(conn.getResponseCode());
-    System.out.println(conn.getResponseMessage());
 
     BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
     String line;

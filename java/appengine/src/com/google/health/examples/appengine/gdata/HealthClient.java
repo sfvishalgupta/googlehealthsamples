@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2010 Google Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -34,6 +34,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
+import com.google.gdata.client.authn.oauth.OAuthException;
 import com.google.health.examples.appengine.Profile;
 import com.google.health.examples.appengine.oauth.AuthenticationException;
 import com.google.health.examples.appengine.oauth.OAuthService;
@@ -132,8 +133,13 @@ public class HealthClient {
     URL url = new URL(requestUrl);
     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
-    String header = oauthAuthenticator.getHttpAuthorizationHeader(url.toString(), "GET", profile
-        .getOAuthToken(), profile.getOAuthTokenSecret());
+    String header;
+    try {
+      header = oauthAuthenticator.getHttpAuthorizationHeader(url.toString(), "GET", profile
+          .getOAuthToken(), profile.getOAuthTokenSecret());
+    } catch (OAuthException e) {
+      throw new AuthenticationException(e);
+    }
     conn.setRequestProperty("Authorization", header);
 
     // If the tokens are invalid, remove them from the profile and start over.
@@ -161,22 +167,27 @@ public class HealthClient {
 
   private String postData(String requestUrl, String atom) throws AuthenticationException,
       IOException {
-    
+
     URL url = new URL(requestUrl);
     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
     conn.setRequestMethod("POST");
     conn.setDoOutput(true);
 
-    String header = oauthAuthenticator.getHttpAuthorizationHeader(url.toString(), "POST", profile
-        .getOAuthToken(), profile.getOAuthTokenSecret());
+    String header;
+    try {
+      header = oauthAuthenticator.getHttpAuthorizationHeader(url.toString(), "POST", profile
+          .getOAuthToken(), profile.getOAuthTokenSecret());
+    } catch (OAuthException e) {
+      throw new AuthenticationException(e);
+    }
     conn.setRequestProperty("Authorization", header);
     conn.setRequestProperty("Content-Type", "application/atom+xml");
-    
+
     // TODO ensure the writer is closed on exception
     BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream()));
     writer.write(atom);
     writer.close();
-    
+
     // If the tokens are invalid, remove them from the profile and start over.
     if (conn.getResponseCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
       throw new AuthenticationException();
