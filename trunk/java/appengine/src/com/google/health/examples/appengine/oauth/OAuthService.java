@@ -1,7 +1,11 @@
 package com.google.health.examples.appengine.oauth;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -34,7 +38,7 @@ public class OAuthService {
 
   /**
    * Anonymous, HMAC-SHA1 signing
-   * 
+   *
    * @param version
    */
   public OAuthService(OAuthVersion version) {
@@ -47,7 +51,7 @@ public class OAuthService {
 
   /**
    * HMAC-SHA1 signing
-   * 
+   *
    * @param version
    * @param consumerKey
    * @param consumerSecret
@@ -62,53 +66,49 @@ public class OAuthService {
 
   /**
    * RSA-SHA1 signing
-   * 
+   *
    * @param version
-   * @param consumerKey
-   * @param keystore
-   * @param keystorePassword
+   * @param consumerKey The OAuth consumer key
+   * @param keystore The file name of the keystore, located in the root of the classpath
+   * @param keystorePassword The password for the keystore
+   * @param alias The key alias in the keystore
    */
   public OAuthService(OAuthVersion version, String consumerKey, String keystore,
-      String keystorePassword, String alias) {
+      String keystorePassword, String alias) throws Exception {
+
     this.version = version;
     this.consumerKey = consumerKey;
 
-    PrivateKey pk;
-    try {
-      pk = loadPrivateKey(keystore, keystorePassword, alias);
-      log.info("Loaded private key: " + pk.toString());
-
-      this.helper = new GoogleOAuthHelper(new OAuthRsaSha1Signer(pk));
-    } catch (Exception e) {
-      log.severe(e.getMessage());
-      return;
-      // TODO not enough...
-    }
+    PrivateKey pk = loadPrivateKey(keystore, keystorePassword, alias);
+    log.info("Loaded private key: " + pk.toString());
+    this.helper = new GoogleOAuthHelper(new OAuthRsaSha1Signer(pk));
   }
 
   /**
    * First leg OAuth 1.0
-   * 
+   *
    * @param scope
-   * @return Array containing token (index = 0) and token secret (index = 1).
+   * @return Array containing OAuth token (index = 0) and token secret (index = 1)
    */
   public String[] getRequestTokens(String scope) {
-    if (version != OAuthVersion.v1_0)
-      throw new IllegalStateException();
+    if (version != OAuthVersion.v1_0) {
+      throw new IllegalStateException("OAuth version must be 1.0");
+    }
 
     return _getRequestTokens(scope, null);
   }
 
   /**
    * First leg OAuth 1.0a
-   * 
+   *
    * @param scope
    * @param callback
-   * @return Array containing token (index = 0) and token secret (index = 1).
+   * @return Array containing OAuth token (index = 0) and token secret (index = 1)
    */
   public String[] getRequestTokens(String scope, String callback) {
-    if (version != OAuthVersion.v1_0a || Strings.isNullOrEmpty(callback))
-      throw new IllegalStateException();
+    if (version != OAuthVersion.v1_0a || Strings.isNullOrEmpty(callback)) {
+      throw new IllegalStateException("OAuth version must be 1.0a, and the callback cannot be null");
+    }
 
     return _getRequestTokens(scope, callback);
   }
@@ -139,34 +139,37 @@ public class OAuthService {
 
   /**
    * Second leg OAuth 1.0
-   * 
+   *
    * @param token
    * @param callback
    * @return
    */
   public String getAuthorizationLink(String token, String callback) {
-    if (version != OAuthVersion.v1_0 || Strings.isNullOrEmpty(callback))
-      throw new IllegalStateException();
+    if (version != OAuthVersion.v1_0 || Strings.isNullOrEmpty(callback)) {
+      throw new IllegalStateException("OAuth version must be 1.0, and the callback cannot be null");
+    }
 
     return _getAuthorizationLink(token, callback);
   }
 
   /**
    * Second leg OAuth 1.0a
-   * 
+   *
    * @param token
    * @return
    */
   public String getAuthorizationLink(String token) {
-    if (version != OAuthVersion.v1_0a)
-      throw new IllegalStateException();
+    if (version != OAuthVersion.v1_0a) {
+      throw new IllegalStateException("OAuth version must be 1.0a");
+    }
 
     return _getAuthorizationLink(token, null);
   }
 
   private String _getAuthorizationLink(String token, String callback) {
-    if (version != OAuthVersion.v1_0)
-      throw new IllegalStateException();
+    if (version != OAuthVersion.v1_0) {
+      throw new IllegalStateException("OAuth version must be 1.0");
+    }
 
     GoogleOAuthParameters params = new GoogleOAuthParameters();
     params.setOAuthConsumerKey(consumerKey);
@@ -182,7 +185,7 @@ public class OAuthService {
 
   /**
    * Third leg
-   * 
+   *
    * @param tokenSecret
    * @param queryString
    * @return
@@ -192,7 +195,6 @@ public class OAuthService {
     params.setOAuthConsumerKey(consumerKey);
     params.setOAuthConsumerSecret(consumerSecret);
     // Adding the token secret from the unauthorized request token response.
-    // Doesn't seem to be documented.
     params.setOAuthTokenSecret(tokenSecret);
 
     helper.getOAuthParametersFromCallback(queryString, params);
@@ -216,7 +218,7 @@ public class OAuthService {
 
   /**
    * Generate an OAuth HTTP request parameter value.
-   * 
+   *
    * @param url
    * @param method
    * @param token
@@ -244,21 +246,48 @@ public class OAuthService {
 
     return header;
   }
-  
+
   public void revokeToken(String token, String tokenSecret) {
     GoogleOAuthParameters params = new GoogleOAuthParameters();
     params.setOAuthConsumerKey(consumerKey);
     params.setOAuthConsumerSecret(consumerSecret);
     params.setOAuthToken(token);
     params.setOAuthTokenSecret(tokenSecret);
-    
+
     try {
       helper.revokeToken(params);
     } catch (OAuthException e) {
       log.severe(e.getMessage());
     }
   }
-  
+
+  public String getTokenInfo(String token, String tokenSecret) throws Exception {
+    GoogleOAuthParameters params = new GoogleOAuthParameters();
+    params.setOAuthConsumerKey(consumerKey);
+    params.setOAuthConsumerSecret(consumerSecret);
+    params.setOAuthToken(token);
+    params.setOAuthTokenSecret(tokenSecret);
+
+    URL url = new URL("https://www.google.com/accounts/AuthSubTokenInfo");
+
+    String header = helper.getAuthorizationHeader(url.toString(), "GET", params);
+
+    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+    conn.setRequestProperty("Authorization", header);
+
+    System.out.println(conn.getResponseCode());
+    System.out.println(conn.getResponseMessage());
+
+    BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+    String line;
+    StringBuilder sb = new StringBuilder();
+    while ((line = reader.readLine()) != null) {
+      sb.append(line);
+    }
+
+    return sb.toString();
+  }
+
   private static PrivateKey loadPrivateKey(String keystore, String keystorePassword, String alias)
       throws KeyStoreException, NoSuchAlgorithmException, CertificateException, IOException,
       UnrecoverableKeyException {
@@ -270,6 +299,10 @@ public class OAuthService {
     in.close();
 
     PrivateKey pk = (PrivateKey) ks.getKey(alias, keystorePassword.toCharArray());
+
+    if (pk == null) {
+      throw new IllegalStateException("Null PrivateKey detected. Possibly incorrect alias.");
+    }
 
     return pk;
   }
