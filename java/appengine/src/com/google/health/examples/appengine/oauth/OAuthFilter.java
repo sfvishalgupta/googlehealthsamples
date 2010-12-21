@@ -47,10 +47,14 @@ public class OAuthFilter implements Filter {
   public void init(FilterConfig filterConfig) throws ServletException {
     this.filterConfig = filterConfig;
 
-    oauthService = new OAuthService(OAuthVersion.v1_0, filterConfig
-        .getInitParameter(OAUTH_CONSUMER_KEY), filterConfig.getInitParameter(KEYSTORE_FILE),
-        filterConfig.getInitParameter(KEYSTORE_PASSWORD), filterConfig
-            .getInitParameter(KEYSTORE_CERTIFICATE_ALIAS));
+    try {
+      oauthService = new OAuthService(OAuthVersion.v1_0, filterConfig
+          .getInitParameter(OAUTH_CONSUMER_KEY), filterConfig.getInitParameter(KEYSTORE_FILE),
+          filterConfig.getInitParameter(KEYSTORE_PASSWORD), filterConfig
+              .getInitParameter(KEYSTORE_CERTIFICATE_ALIAS));
+    } catch (Exception e) {
+      throw new ServletException(e);
+    }
 
     service = GoogleService.getServiceByName(filterConfig.getInitParameter(SERVICE_NAME));
   }
@@ -113,8 +117,7 @@ public class OAuthFilter implements Filter {
 
         // OAuthAuthorizeToken: The second leg is to authorize the request
         // token.
-        String link = oauthService.getAuthorizationLink(tokens[0], req.getRequestURL()
-            .toString());
+        String link = oauthService.getAuthorizationLink(tokens[0], req.getRequestURL().toString());
 
         // Give the user the link for authorizing the linkage.
         // This could be an automatic redirect, but we'd have to append the
