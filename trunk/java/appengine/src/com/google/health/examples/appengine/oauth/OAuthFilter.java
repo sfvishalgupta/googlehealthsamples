@@ -11,9 +11,12 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import sun.util.logging.resources.logging;
+
 import com.google.appengine.api.users.User;
 import com.google.appengine.api.users.UserService;
 import com.google.appengine.api.users.UserServiceFactory;
+import com.google.gdata.client.authn.oauth.OAuthException;
 import com.google.health.examples.appengine.Profile;
 import com.google.health.examples.appengine.ProfileDao;
 import com.google.health.examples.appengine.gdata.GoogleService;
@@ -87,7 +90,11 @@ public class OAuthFilter implements Filter {
 
     // The user has requested to unlink their account.
     if (req.getParameter("unlink") != null) {
-      oauthService.revokeToken(profile.getOAuthToken(), profile.getOAuthTokenSecret());
+      try {
+        oauthService.revokeToken(profile.getOAuthToken(), profile.getOAuthTokenSecret());
+      } catch (OAuthException e) {
+        throw new ServletException(e);
+      }
 
       // Reset the profile's credentials.
       profile.setOAuthToken(null);
@@ -109,7 +116,12 @@ public class OAuthFilter implements Filter {
       if (requestToken == null) {
         // OAuthGetRequestToken: The first leg is to get an unauthorized request
         // token.
-        String[] tokens = oauthService.getRequestTokens(service.getBaseURL());
+        String[] tokens;
+        try {
+          tokens = oauthService.getRequestTokens(service.getBaseURL());
+        } catch (OAuthException e) {
+          throw new ServletException(e);
+        }
 
         // Store the token secret for re-use in third leg.
         profile.setOAuthTokenSecret(tokens[1]);
@@ -139,7 +151,12 @@ public class OAuthFilter implements Filter {
           return;
         }
 
-        String[] tokens = oauthService.getAccessTokens(tokenSecret, req.getQueryString());
+        String[] tokens;
+        try {
+          tokens = oauthService.getAccessTokens(tokenSecret, req.getQueryString());
+        } catch (OAuthException e) {
+          throw new ServletException(e);
+        }
 
         // Set the tokens and persist the profile.
         profile.setOAuthToken(tokens[0]);
