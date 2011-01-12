@@ -43,6 +43,10 @@ public interface HealthClient {
     private String message;
     private String content;
 
+    public ServiceException(Exception e) {
+      super(e);
+    }
+
     public ServiceException(int code, String message, String content) {
       this.code = code;
       this.message = message;
