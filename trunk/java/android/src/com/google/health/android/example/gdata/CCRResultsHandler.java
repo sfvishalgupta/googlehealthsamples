@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2010 Google Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -27,14 +27,11 @@ import org.xml.sax.helpers.DefaultHandler;
 import com.google.health.android.example.gdata.CCRObject.DateType;
 
 /**
- * Unsupported:
- * CCRDataObjectIds (unused anyhow)
- * Codes
- * NormalResults
+ * Unsupported: CCRDataObjectIds (unused anyhow), Codes, NormalResults,
  * Source/Actors
  */
-class CCRResultsHandler extends DefaultHandler {
-  
+public class CCRResultsHandler extends DefaultHandler {
+
   private static final String CCR_RESULT = "Result";
   private static final String CCR_TEST = "Test";
   private static final String CCR_DATETIME = "DateTime";
@@ -44,47 +41,48 @@ class CCRResultsHandler extends DefaultHandler {
   private static final String CCR_TEXT = "Text";
   private static final String CCR_DESCRIPTION = "Description";
   private static final String CCR_TYPE = "Type";
-  
+
   private List<Result> results;
   private Stack<String> stack;
 
   private Test test;
-  private Result result;  
+  private Result result;
 
   private String dateType;
   private String date;
-  
+
   private String text;
-  
+
   @Override
   public void startDocument() {
     results = new LinkedList<Result>();
     stack = new Stack<String>();
   }
-  
+
   @Override
   public void startElement(String nsURI, String localName, String qName, Attributes atts)
       throws SAXException {
-    
-    stack.push(localName);
-    
-    if (localName.equals(CCR_RESULT)) {
+
+    // Only process results in the "Results" section (not VitalSigns)
+    // TODO Update handling since we'll miss blood type in VitalSigns
+    if (localName.equals(CCR_RESULT) && stack.peek().equals("Results")) {
       result = new Result();
     } else if (localName.equals(CCR_TEST)) {
       test = new Test();
     }
+
+    stack.push(localName);
   }
 
   @Override
   public void endElement(String nsURI, String localName, String qName) throws SAXException {
-    
     stack.pop();
-    
+
     // Code only processing Results and sub-elements.
     if (result == null) {
       return;
     }
-    
+
     if (localName.equals(CCR_RESULT)) {
       results.add(result);
       result = null;
@@ -101,7 +99,7 @@ class CCRResultsHandler extends DefaultHandler {
           result.setDate(date);
         }
       }
-      
+
       dateType = null;
       date = null;
     } else if (localName.equals(CCR_DESCRIPTION)) {
@@ -110,27 +108,26 @@ class CCRResultsHandler extends DefaultHandler {
       } else {
         result.setName(text);
       }
-      
+
       text = null;
     } else if (localName.equals(CCR_TYPE)) {
       if (stack.peek().equals(CCR_DATETIME)) {
         dateType = text;
       }
-      
+
       text = null;
     }
   }
-  
+
   @Override
   public void characters(char ch[], int start, int length) {
-    
     // Code only processing Results and sub-elements.
     if (result == null) {
       return;
     }
-    
+
     String text = new String(ch, start, length);
-    
+
     // Will only get a units or values if we're processing a test;
     // although, they could be in NormalResults
     if (stack.peek().equals(CCR_VALUE)) {
@@ -147,7 +144,7 @@ class CCRResultsHandler extends DefaultHandler {
       this.text = text;
     }
   }
-  
+
   public List<Result> getResults() {
     return results;
   }

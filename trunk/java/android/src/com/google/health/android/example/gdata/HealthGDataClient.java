@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2010 Google Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -42,15 +42,16 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
-public class HealthGDataClient {
+import com.google.health.android.example.HealthClient;
 
+public class HealthGDataClient implements HealthClient {
   private HealthService service;
   private String profileId;
   private String authToken;
 
   public enum HealthService {
-    HEALTH("health", "https://www.google.com/health/feeds"),
-    H9("weaver", "https://www.google.com/h9/feeds");
+    HEALTH("health", "https://www.google.com/health/feeds"), H9("weaver",
+        "https://www.google.com/h9/feeds");
 
     private String name;
     private String baseUrl;
@@ -68,21 +69,24 @@ public class HealthGDataClient {
       return name;
     }
   }
-  
-  /** Matches the profile name and id in the Atom results from the Health profile feed. */
+
+  /**
+   * Matches the profile name and id in the Atom results from the Health profile
+   * feed.
+   */
   static final Pattern PROFILE_PATTERN = Pattern
       .compile("<title type='text'>([^<]*)</title><content type='text'>([\\w\\.]*)</content>");
-  
-  static final String ATOM_HEADER =
-    "<?xml version=\"1.0\" encoding=\"utf-8\"?><entry xmlns=\"http://www.w3.org/2005/Atom\">";
+
+  static final String ATOM_HEADER = "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
+      + "<entry xmlns=\"http://www.w3.org/2005/Atom\">";
   static final String ATOM_FOOTER = "</entry>";
 
   /** Params: title, content */
   static final String NOTICE = "<title type=\"text\">%s</title><content type=\"text\">%s</content>";
-  
+
   static final String CCR_HEADER = "<ContinuityOfCareRecord xmlns=\"urn:astm-org:CCR\">";
   static final String CCR_FOOTER = "</ContinuityOfCareRecord>";
-  
+
   public HealthGDataClient(HealthService service) {
     this.service = service;
   }
@@ -96,25 +100,30 @@ public class HealthGDataClient {
       throw new IllegalArgumentException("Invalid service name. Expecting 'weaver' or 'health'.");
     }
   }
-  
+
+  @Override
   public String getProfileId() {
     return profileId;
   }
 
+  @Override
   public void setProfileId(String profileId) {
     this.profileId = profileId;
   }
 
+  @Override
   public String getAuthToken() {
     return authToken;
   }
 
+  @Override
   public void setAuthToken(String authToken) {
     this.authToken = authToken;
   }
-  
+
+  @Override
   public Map<String, String> retrieveProfiles() throws AuthenticationException,
-      InvalidProfileException {
+      InvalidProfileException, ServiceException {
 
     if (authToken == null) {
       throw new IllegalStateException("authToken must not be null.");
@@ -136,7 +145,9 @@ public class HealthGDataClient {
     return profiles;
   }
 
-  public List<Result> retrieveResults() throws AuthenticationException, InvalidProfileException {
+  @Override
+  public List<Result> retrieveResults() throws AuthenticationException, InvalidProfileException,
+      ServiceException {
 
     if (authToken == null) {
       throw new IllegalStateException("authToken must not be null");
@@ -148,7 +159,7 @@ public class HealthGDataClient {
 
     String url = service.getBaseURL() + "/profile/ui/" + profileId + "/-/labtest?digest=true";
     String data = retreiveData(url);
-    
+
     CCRResultsHandler ccrHandler = new CCRResultsHandler();
     try {
       SAXParserFactory spf = SAXParserFactory.newInstance();
@@ -168,10 +179,11 @@ public class HealthGDataClient {
 
     return ccrHandler.getResults();
   }
-  
+
+  @Override
   public Result createResult(Result result) throws AuthenticationException,
-      InvalidProfileException {
-    
+      InvalidProfileException, ServiceException {
+
     if (authToken == null) {
       throw new IllegalStateException("authToken must not be null");
     }
@@ -179,22 +191,22 @@ public class HealthGDataClient {
     if (profileId == null) {
       throw new IllegalStateException("profileId must not be null.");
     }
-    
+
     String ccr = CCR_HEADER + "<Body><Results>" + result.toCCR() + "</Results></Body>" + CCR_FOOTER;
     String notice = String.format(NOTICE, "Health Android Example App data posted",
         "The Health Android Example App posted the following data to your profile:");
     String atom = ATOM_HEADER + notice + ccr + ATOM_FOOTER;
-    
+
     String url = service.getBaseURL() + "/register/ui/" + profileId;
     // TODO Parse and return results from service.
     postData(url, atom);
-    
+
     return result;
   }
-  
+
   private String retreiveData(String requestUrl) throws AuthenticationException,
-      InvalidProfileException {
-    
+      InvalidProfileException, ServiceException {
+
     BufferedReader reader = null;
     StringBuilder sb = new StringBuilder();
 
@@ -204,23 +216,6 @@ public class HealthGDataClient {
 
     try {
       HttpResponse response = httpclient.execute(httpget);
-      
-      int code = response.getStatusLine().getStatusCode(); 
-      switch (code) {
-      case 401:
-        throw new AuthenticationException();
-
-      case 403:
-        throw new InvalidProfileException();
-
-      case 200:
-      case 201:
-        break;
-
-      default:
-        throw new IllegalStateException("Unable to connect to Health service. Response code "
-            + code + ".");
-      }
 
       HttpEntity entity = response.getEntity();
 
@@ -232,6 +227,23 @@ public class HealthGDataClient {
         while ((read = reader.read(buff)) != -1) {
           sb.append(buff, 0, read);
         }
+      }
+
+      int code = response.getStatusLine().getStatusCode();
+      String message = response.getStatusLine().getReasonPhrase();
+      switch (code) {
+      case 401:
+        throw new AuthenticationException(code, message, sb.toString());
+
+      case 403:
+        throw new InvalidProfileException();
+
+      case 200:
+      case 201:
+        break;
+
+      default:
+        throw new ServiceException(code, message, sb.toString());
       }
     } catch (ClientProtocolException e) {
       return null;
@@ -248,10 +260,10 @@ public class HealthGDataClient {
 
     return sb.toString();
   }
-  
+
   private String postData(String requestUrl, String atom) throws AuthenticationException,
-      InvalidProfileException {
-    
+      InvalidProfileException, ServiceException {
+
     BufferedReader reader = null;
     StringBuilder sb = new StringBuilder();
 
@@ -259,30 +271,12 @@ public class HealthGDataClient {
     HttpPost httppost = new HttpPost(requestUrl);
     httppost.setHeader("Authorization", "GoogleLogin auth=" + authToken);
     httppost.setHeader("Content-Type", "application/atom+xml");
-    
+
     try {
       httppost.setEntity(new StringEntity(atom));
-      
+
       // TODO The following is repeated code (retrieveData)... refactor
       HttpResponse response = httpclient.execute(httppost);
-      
-      int code = response.getStatusLine().getStatusCode();
-      switch (code) {
-      case 401:
-        throw new AuthenticationException();
-
-      case 403:
-        throw new InvalidProfileException();
-
-      case 200:
-      case 201:
-        break;
-
-      default:
-        throw new IllegalStateException("Unable to connect to Health service. Response code "
-            + code + ".");
-      }
-
       HttpEntity entity = response.getEntity();
 
       // Buffer the response.
@@ -293,6 +287,23 @@ public class HealthGDataClient {
         while ((read = reader.read(buff)) != -1) {
           sb.append(buff, 0, read);
         }
+      }
+
+      int code = response.getStatusLine().getStatusCode();
+      String message = response.getStatusLine().getReasonPhrase();
+      switch (code) {
+      case 401:
+        throw new AuthenticationException(code, message, sb.toString());
+
+      case 403:
+        throw new InvalidProfileException();
+
+      case 200:
+      case 201:
+        break;
+
+      default:
+        throw new ServiceException(code, message, sb.toString());
       }
     } catch (ClientProtocolException e) {
       return null;
@@ -308,13 +319,5 @@ public class HealthGDataClient {
     }
 
     return sb.toString();
-  }
-
-  @SuppressWarnings("serial")
-  public class AuthenticationException extends Exception {
-  }
-
-  @SuppressWarnings("serial")
-  public class InvalidProfileException extends Exception {
   }
 }
