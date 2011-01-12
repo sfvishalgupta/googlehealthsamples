@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2010 Google Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -24,12 +24,12 @@ import java.io.Serializable;
  * - Codes
  */
 @SuppressWarnings("serial")
-public class Test extends CCRObject implements Serializable {
-  
+public class Test extends CCRObject implements Comparable<Test>, Serializable {
+
   /** Params: value, units */
   static final String TEST_RESULT =
     "<TestResult><Value>%s</Value><Units><Unit>%s</Unit></Units></TestResult>";
-  
+
   private String name;
   private String date;
   private String value;
@@ -66,30 +66,51 @@ public class Test extends CCRObject implements Serializable {
   public void setUnits(String units) {
     this.units = units;
   }
-  
+
   @Override
   public String toString() {
-    return name + " " + " " + value + " " + units + " " + date; 
+    return name + " " + " " + value + " " + units + " " + date;
   }
 
   @Override
   public String toCCR() {
     StringBuilder sb = new StringBuilder("<Test>");
-    
+
     if (date != null) {
       sb.append(String.format(DATE_TIME, DateType.COLLECTION_START_DATE, date));
     }
-    
+
     if (name != null) {
       sb.append(String.format(DESCRIPTION, name));
     }
-    
+
     if (units != null && value != null) {
       sb.append(String.format(TEST_RESULT, value, units));
     }
-    
+
     sb.append("</Test>");
-    
+
     return sb.toString();
+  }
+
+  @Override
+  public int compareTo(Test t2) {
+    int x = 0;
+
+    if (this.getDate() != null && t2.getDate() != null) {
+      x = this.getDate().compareTo(t2.getDate());
+    }
+
+    if (x != 0) {
+      return x;
+    }
+
+    x = this.getName().compareTo(t2.getName());
+
+    if (x != 0) {
+      return x;
+    }
+
+    return -1;
   }
 }
