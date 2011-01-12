@@ -23,9 +23,9 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import android.accounts.Account;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.ListActivity;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -38,6 +38,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -52,7 +53,7 @@ import com.google.health.android.example.gdata.HealthGDataClient;
 import com.google.health.android.example.gdata.Result;
 import com.google.health.android.example.gdata.Test;
 
-public final class HealthAndroidExample extends ListActivity {
+public final class HealthAndroidExample extends Activity {
   private static final String SERVICE_NAME = HealthClient.H9_SERVICE;
   public static final String LOG_TAG = "HealthAndroidExample";
 
@@ -87,6 +88,22 @@ public final class HealthAndroidExample extends ListActivity {
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    setContentView(R.layout.main);
+
+    // Configure the main display buttons
+    Button button = (Button) findViewById(R.id.main_accounts);
+    button.setOnClickListener(new View.OnClickListener() {
+      public void onClick(View v) {
+        chooseAccount();
+      }
+    });
+
+    button = (Button) findViewById(R.id.main_profiles);
+    button.setOnClickListener(new View.OnClickListener() {
+      public void onClick(View v) {
+        chooseProfile();
+      }
+    });
 
     auth = new AuthManager(this, SERVICE_NAME);
 
@@ -96,6 +113,7 @@ public final class HealthAndroidExample extends ListActivity {
   @Override
   protected Dialog onCreateDialog(int id) {
     Dialog dialog;
+    AlertDialog.Builder builder;
 
     switch (id) {
     case DIALOG_PROGRESS:
@@ -105,7 +123,7 @@ public final class HealthAndroidExample extends ListActivity {
     case DIALOG_PROFILES:
       String[] profileNames = profiles.values().toArray(new String[profiles.size()]);
 
-      AlertDialog.Builder builder = new AlertDialog.Builder(this);
+      builder = new AlertDialog.Builder(this);
       builder.setTitle("Select a Health profile");
       builder.setItems(profileNames, new DialogInterface.OnClickListener() {
         public void onClick(DialogInterface dialog, int i) {
@@ -113,8 +131,13 @@ public final class HealthAndroidExample extends ListActivity {
           // next time it's displayed since onPrepareDialog cannot change the dialog's
           // list items.
           removeDialog(DIALOG_PROFILES);
+
           String pid = profiles.keySet().toArray(new String[profiles.size()])[i];
           client.setProfileId(pid);
+
+          Button button = (Button) findViewById(R.id.main_profiles);
+          button.setText(profiles.get(pid));
+
           retrieveResults();
         }
       });
@@ -123,18 +146,18 @@ public final class HealthAndroidExample extends ListActivity {
       break;
 
     case DIALOG_ERROR:
-      AlertDialog.Builder builder2 = new AlertDialog.Builder(this);
-      builder2.setTitle("Connection Error");
-      builder2.setMessage("Unable to connect to Google Health service. "
+      builder = new AlertDialog.Builder(this);
+      builder.setTitle("Connection Error");
+      builder.setMessage("Unable to connect to Google Health service. "
           + "Please check your network connection and try again.");
-      builder2.setCancelable(true);
-      builder2.setPositiveButton("Close", new DialogInterface.OnClickListener() {
+      builder.setCancelable(true);
+      builder.setPositiveButton("Close", new DialogInterface.OnClickListener() {
         public void onClick(DialogInterface dialog, int id) {
           dialog.cancel();
         }
       });
 
-      dialog = builder2.create();
+      dialog = builder.create();
       break;
 
     default:
@@ -156,6 +179,10 @@ public final class HealthAndroidExample extends ListActivity {
           authenticate(account);
         } else {
           Log.d(LOG_TAG, "User authenticated, proceeding with profile selection.");
+
+          Button button = (Button) findViewById(R.id.main_accounts);
+          button.setText(account.name);
+
           client.setAuthToken(auth.getAuthToken());
           chooseProfile();
         }
@@ -340,22 +367,20 @@ public final class HealthAndroidExample extends ListActivity {
     // Collect the Tests from the Results and order them chronologically.
     Set<Test> tests = new TreeSet<Test>();
     for (Result result : results) {
-      tests.addAll(result.getTests());
-
       // If the Test is missing it's date, then assign the Result date.
       for (Test test : result.getTests()) {
         if (test.getDate() == null) {
           test.setDate(result.getDate());
         }
       }
+
+      tests.addAll(result.getTests());
     }
+    Test[] items = tests.toArray(new Test[tests.size()]);
 
     // Update the text view of the main activity with the list of test results.
-    Test[] items = tests.toArray(new Test[tests.size()]);
-    setListAdapter(new ArrayAdapter<Test>(this, R.layout.list_item, items));
-
-    ListView lv = getListView();
-    lv.setTextFilterEnabled(true);
+    ListView lv = (ListView) findViewById(R.id.main_results);
+    lv.setAdapter(new ArrayAdapter<Test>(this, R.layout.list_item, items));
 
     lv.setOnItemClickListener(new OnItemClickListener() {
       public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
