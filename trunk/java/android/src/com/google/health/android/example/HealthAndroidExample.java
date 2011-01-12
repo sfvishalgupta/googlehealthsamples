@@ -103,15 +103,14 @@ public final class HealthAndroidExample extends ListActivity {
       break;
 
     case DIALOG_PROFILES:
-      AlertDialog.Builder builder = new AlertDialog.Builder(this);
-      builder.setTitle("Select a Health profile");
-
       String[] profileNames = profiles.values().toArray(new String[profiles.size()]);
 
+      AlertDialog.Builder builder = new AlertDialog.Builder(this);
+      builder.setTitle("Select a Health profile");
       builder.setItems(profileNames, new DialogInterface.OnClickListener() {
         public void onClick(DialogInterface dialog, int i) {
           // Remove the dialog so that it's refreshed with new list items the
-          // next time it's displayed. onPrepareDialog cannot change the dialog's
+          // next time it's displayed since onPrepareDialog cannot change the dialog's
           // list items.
           removeDialog(DIALOG_PROFILES);
           String pid = profiles.keySet().toArray(new String[profiles.size()])[i];
@@ -125,12 +124,18 @@ public final class HealthAndroidExample extends ListActivity {
 
     case DIALOG_ERROR:
       AlertDialog.Builder builder2 = new AlertDialog.Builder(this);
-      builder2.setMessage("Error").setCancelable(false).setPositiveButton("Close",
-          new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-              dialog.cancel();
-            }
-          });
+      builder2.setTitle("Connection Error");
+      builder2.setMessage("Unable to connect to Google Health service. "
+          + "Please check your network connection and try again.");
+      builder2.setCancelable(true);
+      builder2.setPositiveButton("Close", new DialogInterface.OnClickListener() {
+        public void onClick(DialogInterface dialog, int id) {
+          dialog.cancel();
+        }
+      });
+
+      dialog = builder2.create();
+      break;
 
     default:
       dialog = null;
@@ -295,17 +300,8 @@ public final class HealthAndroidExample extends ListActivity {
               showDialog(DIALOG_PROFILES);
             }
           });
-        } catch (AuthenticationException e) {
-          Log.w(LOG_TAG, "User authentication failed. Re-authenticating.");
-          handler.post(new AuthenticateRunnable());
-        } catch (InvalidProfileException e) {
-          Log.w(LOG_TAG, "Profile invalid. Re-retreiving profiles.");
-          handler.post(new ChooseProfileRunnable());
-          return;
-        } catch (ServiceException e) {
-          Log.e(LOG_TAG, "Error connecting to Health service: code=" + e.getCode() + ", message="
-              + e.getMessage() + ", content=" + e.getContent());
-          return;
+        } catch (Exception e) {
+          handleException(e);
         }
       }
     }).start();
@@ -330,17 +326,8 @@ public final class HealthAndroidExample extends ListActivity {
               displayResults();
             }
           });
-        } catch (AuthenticationException e) {
-          Log.w(LOG_TAG, "User authentication failed. Re-authenticating.");
-          handler.post(new AuthenticateRunnable());
-        } catch (InvalidProfileException e) {
-          Log.w(LOG_TAG, "Profile invalid. Re-retreiving profiles.");
-          handler.post(new ChooseProfileRunnable());
-          return;
-        } catch (ServiceException e) {
-          Log.e(LOG_TAG, "Error connecting to Health service: code=" + e.getCode() + ", message="
-              + e.getMessage() + ", content=" + e.getContent());
-          return;
+        } catch (Exception e) {
+          handleException(e);
         }
       }}).start();
   }
@@ -380,29 +367,49 @@ public final class HealthAndroidExample extends ListActivity {
     openOptionsMenu();
   }
 
-  /**
-   * Runnable for (re)authenticating a user on the UI thread using a Handler.
-   */
-  protected class AuthenticateRunnable implements Runnable {
-    @Override
-    public void run() {
-      authenticate(account);
-    }
-  }
+  protected void handleException(Exception e) {
+    if (e instanceof AuthenticationException ) {
+      Log.w(LOG_TAG, "User authentication failed. Re-authenticating.");
+      handler.post(new Runnable() {
+        @Override
+        public void run() {
+          authenticate(account);
+        }
+      });
+    } else if (e instanceof InvalidProfileException) {
+      Log.w(LOG_TAG, "Profile invalid. Re-retrieving profiles.");
+      handler.post(new Runnable() {
+        @Override
+        public void run() {
+          chooseProfile();
+        }
+      });
+      return;
+    } else if (e instanceof ServiceException) {
+      if (e.getCause() != null) {
+        // Likely no network connectivity.
+        Log.e(LOG_TAG, "Error connecting to Health service.", e);
+      } else {
+        ServiceException se = (ServiceException)e;
+        Log.e(LOG_TAG, "Error connecting to Health service: code=" + se.getCode() + ", message="
+            + e.getMessage() + ", content=" + se.getContent());
+      }
 
-  /**
-   * Runnable for choosing Health profiles on the UI thread using a Handler.
-   */
-  protected class ChooseProfileRunnable implements Runnable {
-    @Override
-    public void run() {
-      chooseProfile();
+      // Remove the progress dialog and display the error.
+      dismissDialog(DIALOG_PROGRESS);
+      handler.post(new Runnable() {
+        @Override
+        public void run() {
+          showDialog(DIALOG_ERROR);
+        }});
+
+      return;
     }
   }
 
   /**
    * Threads for creating results, required since the result is a method
-   * variable, and not a class viariable that can be accessed in an anonymous
+   * variable, and not a class variable that can be accessed in an anonymous
    * inner class.
    */
   protected class CreateResultThread extends Thread {
@@ -423,17 +430,8 @@ public final class HealthAndroidExample extends ListActivity {
             retrieveResults();
           }
         });
-      } catch (AuthenticationException e) {
-        Log.w(LOG_TAG, "User authentication failed. Re-authenticating.");
-        handler.post(new AuthenticateRunnable());
-      } catch (InvalidProfileException e) {
-        Log.w(LOG_TAG, "Profile invalid. Re-retreiving profiles.");
-        handler.post(new ChooseProfileRunnable());
-        return;
-      } catch (ServiceException e) {
-        Log.e(LOG_TAG, "Error connecting to Health service: code=" + e.getCode() + ", message="
-            + e.getMessage() + ", content=" + e.getContent());
-        return;
+      } catch (Exception e) {
+        handleException(e);
       }
     }
   }

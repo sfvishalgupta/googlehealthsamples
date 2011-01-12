@@ -32,7 +32,6 @@ import javax.xml.parsers.SAXParserFactory;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -245,15 +244,14 @@ public class HealthGDataClient implements HealthClient {
       default:
         throw new ServiceException(code, message, sb.toString());
       }
-    } catch (ClientProtocolException e) {
-      return null;
     } catch (IOException e) {
-      return null;
+      throw new ServiceException(e);
     } finally {
       if (reader != null) {
         try {
           reader.close();
         } catch (IOException e) {
+          throw new ServiceException(e);
         }
       }
     }
@@ -305,15 +303,14 @@ public class HealthGDataClient implements HealthClient {
       default:
         throw new ServiceException(code, message, sb.toString());
       }
-    } catch (ClientProtocolException e) {
-      return null;
     } catch (IOException e) {
-      return null;
+      throw new ServiceException(e);
     } finally {
       if (reader != null) {
         try {
           reader.close();
         } catch (IOException e) {
+          throw new ServiceException(e);
         }
       }
     }
