@@ -1,27 +1,27 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-  android:layout_width="match_parent"
-  android:layout_height="match_parent"
+  android:layout_width="fill_parent"
+  android:layout_height="fill_parent"
   android:padding="5px">
-  
-  <TableLayout android:layout_width="match_parent"
-    android:layout_height="match_parent">
-    
+
+  <TableLayout android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+
     <TableRow>
       <TextView android:layout_width="wrap_content"
         android:layout_height="wrap_content" android:text="@string/resultTypeLabelText" />
     </TableRow>
-    
+
     <TableRow>
       <Spinner android:layout_height="wrap_content"
-        android:layout_width="match_parent" android:layout_weight="1"
+        android:layout_width="fill_parent" android:layout_weight="1"
         android:id="@+id/resultTypeSpinner" />
     </TableRow>
-    
+
     <TableRow>
       <TextView android:layout_width="wrap_content"
         android:layout_height="wrap_content" android:text="@string/resultValueLabelText" />
     </TableRow>
-    
+
     <TableRow>
       <EditText android:id="@+id/resultValueText"
         android:layout_height="wrap_content" android:layout_width="wrap_content"
@@ -36,7 +36,7 @@
       <TextView android:layout_width="wrap_content"
         android:layout_height="wrap_content" android:text="@string/resultDateLabelText" />
     </TableRow>
-    
+
     <TableRow>
       <EditText android:id="@+id/resultDateText" android:layout_width="wrap_content"
         android:layout_height="wrap_content" android:layout_weight="1" android:focusable="false"
@@ -45,13 +45,13 @@
         android:background="@android:color/transparent"
         android:layout_height="wrap_content" android:drawableLeft="@drawable/calendar" />
     </TableRow>
-    
+
     <TableRow android:paddingTop="10px">
       <Button android:layout_height="wrap_content" android:text="@string/save"
-        android:id="@+id/resultSaveButton" android:layout_width="match_parent"
+        android:id="@+id/resultSaveButton" android:layout_width="fill_parent"
         android:layout_weight="1" />
       <Button android:layout_height="wrap_content" android:text="@string/cancel"
-        android:id="@+id/resultCancelButton" android:layout_width="match_parent"
+        android:id="@+id/resultCancelButton" android:layout_width="fill_parent"
         android:layout_weight="1" />
     </TableRow>
   </TableLayout>

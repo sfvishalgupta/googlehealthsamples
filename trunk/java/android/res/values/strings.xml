@@ -2,18 +2,26 @@
 
 <resources>
   <string name="app_name">Health Android Example</string>
-  
+
   <string name="new_result">New Result</string>
   <string name="refresh_results">Refresh Results</string>
   <string name="choose_account">Choose Account</string>
   <string name="choose_profile">Choose Profile</string>
-  
+
   <string name="save">Save</string>
   <string name="cancel">Cancel</string>
-  
+
   <string name="resultAddTitle">Add Result</string>
   <string name="resultTypeLabelText">Type</string>
   <string name="resultValueLabelText">Value</string>
   <string name="resultDateLabelText">Date</string>
   <string name="resultUnitsLabelText">units</string>
+
+  <!-- Google account selection -->
+  <string name="no_account_found_title">No Account Found</string>
+  <string name="no_account_found">No account found to upload tracks to.</string>
+  <string name="choose_account_title">Choose Account</string>
+
+  <!-- Common -->
+  <string name="ok">OK</string>
 </resources>
