@@ -24,4 +24,8 @@
 
   <!-- Common -->
   <string name="ok">OK</string>
+
+  <!-- Dashboard -->
+  <string name="main_account">Account</string>
+  <string name="main_profile">Profile</string>
 </resources>
