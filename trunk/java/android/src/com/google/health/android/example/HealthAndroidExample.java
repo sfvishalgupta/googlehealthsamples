@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2010 Google Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -16,7 +16,6 @@
 
 package com.google.health.android.example;
 
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,14 +23,14 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import android.accounts.Account;
-import android.accounts.AccountManager;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ListActivity;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -44,168 +43,100 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 
+import com.google.health.android.example.HealthClient.AuthenticationException;
+import com.google.health.android.example.HealthClient.InvalidProfileException;
+import com.google.health.android.example.HealthClient.ServiceException;
+import com.google.health.android.example.auth.AccountChooser;
+import com.google.health.android.example.auth.AuthManager;
 import com.google.health.android.example.gdata.HealthGDataClient;
 import com.google.health.android.example.gdata.Result;
 import com.google.health.android.example.gdata.Test;
-import com.google.health.android.example.gdata.HealthGDataClient.AuthenticationException;
-import com.google.health.android.example.gdata.HealthGDataClient.InvalidProfileException;
 
-/**
- * Known issues:
- * - Re-orientation causes profile dialog to display.
- */
 public final class HealthAndroidExample extends ListActivity {
-
-  /** Set this to 'weaver' to connect to H9, and 'health' to connect to Health. */
-  private static final String SERVICE_NAME = "weaver";
-
-  private static final String LOG_TAG = "AndroidHealthClient";
+  private static final String SERVICE_NAME = HealthClient.H9_SERVICE;
+  public static final String LOG_TAG = "HealthAndroidExample";
 
   private static final int ACTIVITY_AUTHENTICATE = 0;
-  private static final int ACTIVITY_ADD_RESULT = 1;
+  // Public so that the AuthManager can start a new get_login activity after the
+  // user has authorized the app to access their data.
+  public static final int ACTIVITY_GET_LOGIN = 1;
+  private static final int ACTIVITY_ADD_RESULT = 2;
 
-  private static final String PREF = "MyPrefs";
+  private static final int DIALOG_PROFILES = 0;
+  private static final int DIALOG_PROGRESS = 1;
+  private static final int DIALOG_ERROR = 2;
 
-  private static final int DIALOG_ACCOUNTS = 0;
-  private static final int DIALOG_PROFILES = 1;
-  
-  private static final String ACCOUNT_PROPERTY = "account";
-  private static final String PROFILE_PROPERTY = "profile";
-  
   /** Property key for returning a result from a child activity. */
   public static final String RESULT_PROPERTY = "result";
-  
-  private String authToken;
 
-  private HealthGDataClient client = new HealthGDataClient(SERVICE_NAME);
-  
+  public static final String ACCOUNT_TYPE = "com.google";
+
+  /** Handler for posting results from worker threads to UI thread. */
+  private final Handler handler = new Handler();
+
+  /** Service client for send to and retrieving information from Google Health. */
+  private final HealthClient client = new HealthGDataClient(SERVICE_NAME);
+
   private Map<String, String> profiles = new LinkedHashMap<String, String>();
 
-  /** Id of the currently displayed dialog used by anonymous inner classes for dismissing. */
-  private int dialogId;
+  private List<Result> results;
+
+  private AuthManager auth;
+  private Account account;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    
-    gotAccount(false);
+
+    auth = new AuthManager(this, SERVICE_NAME);
+
+    chooseAccount();
   }
 
   @Override
   protected Dialog onCreateDialog(int id) {
-    // Assign the class variable so the anonymous inner classes can access it.
-    dialogId = id;
-    
     Dialog dialog;
-    AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
     switch (id) {
-    case DIALOG_ACCOUNTS:
-      builder.setTitle("Select a Google account");
-      
-      final AccountManager manager = AccountManager.get(this);
-      final Account[] accounts = manager.getAccountsByType("com.google");
-      final int size = accounts.length;
-      String[] names = new String[size];
-
-      for (int i = 0; i < size; i++) {
-        names[i] = accounts[i].name;
-      }
-
-      builder.setItems(names, new DialogInterface.OnClickListener() {
-        public void onClick(DialogInterface dialog, int i) {
-          // Dismiss the dialog so that it will be renewed on re-display.
-          removeDialog(dialogId);
-          
-          gotAccount(manager, accounts[i]);
-        }
-      });
-
-      dialog = builder.create();
+    case DIALOG_PROGRESS:
+      dialog = ProgressDialog.show(HealthAndroidExample.this, "", "Loading. Please wait...", true);
       break;
 
     case DIALOG_PROFILES:
+      AlertDialog.Builder builder = new AlertDialog.Builder(this);
       builder.setTitle("Select a Health profile");
-      
+
       String[] profileNames = profiles.values().toArray(new String[profiles.size()]);
-      
+
       builder.setItems(profileNames, new DialogInterface.OnClickListener() {
         public void onClick(DialogInterface dialog, int i) {
+          // Remove the dialog so that it's refreshed with new list items the
+          // next time it's displayed. onPrepareDialog cannot change the dialog's
+          // list items.
+          removeDialog(DIALOG_PROFILES);
           String pid = profiles.keySet().toArray(new String[profiles.size()])[i];
           client.setProfileId(pid);
-          
-          // Store the pid so that we don't have to re-ask for it.
-          SharedPreferences settings = getSharedPreferences(PREF, 0);
-          SharedPreferences.Editor editor = settings.edit();
-          editor.putString(PROFILE_PROPERTY, pid);
-          editor.commit();
-          
-          // Dismiss the dialog so that it will be renewed on re-display.
-          removeDialog(dialogId);
-          
-          displayResults();
+          retrieveResults();
         }
       });
 
       dialog = builder.create();
       break;
+
+    case DIALOG_ERROR:
+      AlertDialog.Builder builder2 = new AlertDialog.Builder(this);
+      builder2.setMessage("Error").setCancelable(false).setPositiveButton("Close",
+          new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+              dialog.cancel();
+            }
+          });
 
     default:
       dialog = null;
     }
-    
+
     return dialog;
-  }
-  
-  private void gotAccount(boolean tokenExpired) {
-    SharedPreferences settings = getSharedPreferences(PREF, 0);
-    String accountName = settings.getString(ACCOUNT_PROPERTY, null);
-
-    if (accountName != null) {
-      AccountManager manager = AccountManager.get(this);
-      Account[] accounts = manager.getAccountsByType("com.google");
-      int size = accounts.length;
-      for (int i = 0; i < size; i++) {
-        Account account = accounts[i];
-        if (accountName.equals(account.name)) {
-          if (tokenExpired) {
-            manager.invalidateAuthToken("com.google", authToken);
-          }
-          gotAccount(manager, account);
-          return;
-        }
-      }
-    }
-    
-    showDialog(DIALOG_ACCOUNTS);
-  }
-
-  private void gotAccount(AccountManager manager, Account account) {
-    // Store the selected account so we don't have to ask for it between app
-    // restarts, unless the user wants a new one.
-    SharedPreferences settings = getSharedPreferences(PREF, 0);
-    SharedPreferences.Editor editor = settings.edit();
-    editor.putString(ACCOUNT_PROPERTY, account.name);
-    editor.commit();
-    
-    // Retrieve the auth token for the account.
-    try {
-      Bundle bundle = manager.getAuthToken(account, SERVICE_NAME, true, null, null).getResult();
-      if (bundle.containsKey(AccountManager.KEY_INTENT)) {
-        Intent intent = bundle.getParcelable(AccountManager.KEY_INTENT);
-        int flags = intent.getFlags();
-        flags &= ~Intent.FLAG_ACTIVITY_NEW_TASK;
-        intent.setFlags(flags);
-        startActivityForResult(intent, ACTIVITY_AUTHENTICATE);
-      } else if (bundle.containsKey(AccountManager.KEY_AUTHTOKEN)) {
-        authToken = bundle.getString(AccountManager.KEY_AUTHTOKEN);
-        client.setAuthToken(authToken);
-        displayProfiles();
-      }
-    } catch (Exception e) {
-      handleException(e);
-      return;
-    }
   }
 
   @Override
@@ -215,29 +146,31 @@ public final class HealthAndroidExample extends ListActivity {
     switch (requestCode) {
     case ACTIVITY_AUTHENTICATE:
       if (resultCode == RESULT_OK) {
-        gotAccount(false);
-      } else {
-        showDialog(DIALOG_ACCOUNTS);
+        if (auth.getAuthToken() == null) {
+          Log.w(LOG_TAG, "User authenticated, but auth token not found.");
+          authenticate(account);
+        } else {
+          Log.d(LOG_TAG, "User authenticated, proceeding with profile selection.");
+          client.setAuthToken(auth.getAuthToken());
+          chooseProfile();
+        }
       }
       break;
-
+    // Called after the user has authorized application access to the service.
+    case ACTIVITY_GET_LOGIN:
+      if (resultCode == RESULT_OK) {
+        if (!auth.authResult(resultCode, data)) {
+          // Auth token could not be retrieved.
+        }
+      }
+      break;
     case ACTIVITY_ADD_RESULT:
       if (resultCode == RESULT_OK) {
         Bundle bundle = data.getExtras();
         Result result = (Result) bundle.get(RESULT_PROPERTY);
 
-        // TODO Gracefully handle auth failure when result created.
-        try {
-          client.createResult(result);
-        } catch (AuthenticationException e) {
-          gotAccount(true);
-          return;
-        } catch (InvalidProfileException e) {
-          gotAccount(true);
-          return;
-        }
-
-        displayResults();
+        showDialog(DIALOG_PROGRESS);
+        new CreateResultThread(result).start();
       }
       break;
     }
@@ -255,7 +188,7 @@ public final class HealthAndroidExample extends ListActivity {
    * creating new results, refreshing the list of results from Google Health
    * (i.e. retrieving results entered in Health directly while the app is
    * running), choose a profile, and choose an account.
-   * 
+   *
    * @see android.app.Activity#onOptionsItemSelected(android.view.MenuItem)
    */
   @Override
@@ -265,84 +198,160 @@ public final class HealthAndroidExample extends ListActivity {
       Intent i = new Intent(this, ResultAddActivity.class);
       startActivityForResult(i, ACTIVITY_ADD_RESULT);
       return true;
-      
+
     case R.id.refresh_results:
-      displayResults();
+      retrieveResults();
       return true;
-      
+
     case R.id.choose_profile:
-      gotAccount(false);
+      chooseProfile();
       return true;
-      
+
     case R.id.choose_account:
-      // Clear the stored account so the user is forced to select a new one.
-      SharedPreferences settings = getSharedPreferences(PREF, 0);
-      SharedPreferences.Editor editor = settings.edit();
-      editor.remove(ACCOUNT_PROPERTY);
-      editor.commit();
-      
-      gotAccount(false);
+      chooseAccount();
       return true;
-      
+
     default:
       return super.onOptionsItemSelected(item);
     }
   }
 
   /**
-   * Retrieve a list of profiles from Health and display a dialog allowing the
-   * user to select one.
+   * Retrieve a list of accounts stored in the phone and display a dialog
+   * allowing the user to choose one.
    */
-  private void displayProfiles() {
-    try {
-      profiles = client.retrieveProfiles();
-    } catch (AuthenticationException e) {
-      gotAccount(true);
-      return;
-    } catch (InvalidProfileException e) {
-      gotAccount(true);
-      return;
-    }
-    
-    showDialog(DIALOG_PROFILES);
+  protected void chooseAccount() {
+    Log.d(LOG_TAG, "Selecting account.");
+    AccountChooser accountChooser = new AccountChooser();
+    accountChooser.chooseAccount(HealthAndroidExample.this, new AccountChooser.AccountHandler() {
+      @Override
+      public void handleAccountSelected(Account account) {
+        Log.d(LOG_TAG, "Account selected.");
+        // The user hit cancel
+        if (account == null) {
+          return;
+        }
+
+        authenticate(account);
+      }
+    });
   }
 
   /**
-   * Retrieve a list of test results from Health and display them in a list.
+   * Once an account has been selected, use account credentials to get an
+   * authorization token. If the account has already been authenticated, then
+   * the existing token will be invalidated prior to re-authenticating.
+   *
+   * @param account
+   *          The {@code Account} to authenticate with.
    */
-  private void displayResults() {
-    List<Result> results;
-    try {
-      results = client.retrieveResults();
-    } catch (AuthenticationException e) {
-      gotAccount(true);
-      return;
-    } catch (InvalidProfileException e) {
-      gotAccount(true);
+  protected void authenticate(Account account) {
+    Log.d(LOG_TAG, "Authenticating account.");
+    if (this.account == account) {
+      Log.d(LOG_TAG, "Invalidating token.");
+      // If we're re-authenticating the same account, invalidate the old token
+      // before proceeding.
+      auth.invalidateAuthToken(new Runnable() {
+        public void run() {
+          Log.d(LOG_TAG, "Token invalidated.");
+        }
+      });
+    }
+
+    this.account = account;
+
+    auth.doLogin(new Runnable() {
+      public void run() {
+        Log.d(LOG_TAG, "User authenticated.");
+        onActivityResult(ACTIVITY_AUTHENTICATE, RESULT_OK, null);
+      }
+    }, account);
+  }
+
+  /**
+   * Retrieve a list of profiles from Health and display a dialog allowing the
+   * user to select one.
+   */
+  protected void chooseProfile() {
+    // If the user hasn't selected an account (i.e. they canceled the initial
+    // account dialog), have them do so.
+    if (account == null) {
+      chooseAccount();
       return;
     }
 
-    // Collect the Tests from the Results and order them chronologically.
-    Set<Test> tests = new TreeSet<Test>(new Comparator<Test>() {
+    showDialog(DIALOG_PROGRESS);
+
+    new Thread(new Runnable() {
       @Override
-      public int compare(Test t1, Test t2) {
-        // TODO Check for null dates and names
-        int x = t1.getDate().compareTo(t2.getDate()); 
-        
-        if (x != 0) {
-          return x; 
+      public void run() {
+        try {
+          Log.d(LOG_TAG, "Retreiving profiles.");
+          profiles = client.retrieveProfiles();
+          handler.post(new Runnable() {
+            public void run() {
+              Log.d(LOG_TAG, "Profiles retrieved.");
+              dismissDialog(DIALOG_PROGRESS);
+              showDialog(DIALOG_PROFILES);
+            }
+          });
+        } catch (AuthenticationException e) {
+          Log.w(LOG_TAG, "User authentication failed. Re-authenticating.");
+          handler.post(new AuthenticateRunnable());
+        } catch (InvalidProfileException e) {
+          Log.w(LOG_TAG, "Profile invalid. Re-retreiving profiles.");
+          handler.post(new ChooseProfileRunnable());
+          return;
+        } catch (ServiceException e) {
+          Log.e(LOG_TAG, "Error connecting to Health service: code=" + e.getCode() + ", message="
+              + e.getMessage() + ", content=" + e.getContent());
+          return;
         }
-        
-        x = t1.getName().compareTo(t2.getName());
-        
-        if (x != 0) {
-          return x;
-        }
-        
-        return -1;
       }
-    });
-    
+    }).start();
+  }
+
+  /**
+   * Retrieve a list of test results from Health.
+   */
+  protected void retrieveResults() {
+    showDialog(DIALOG_PROGRESS);
+
+    new Thread(new Runnable() {
+      @Override
+      public void run() {
+        try {
+          Log.d(LOG_TAG, "Retreiving results.");
+          results = client.retrieveResults();
+          handler.post(new Runnable() {
+            public void run() {
+              Log.d(LOG_TAG, "Results retrieved.");
+              dismissDialog(DIALOG_PROGRESS);
+              displayResults();
+            }
+          });
+        } catch (AuthenticationException e) {
+          Log.w(LOG_TAG, "User authentication failed. Re-authenticating.");
+          handler.post(new AuthenticateRunnable());
+        } catch (InvalidProfileException e) {
+          Log.w(LOG_TAG, "Profile invalid. Re-retreiving profiles.");
+          handler.post(new ChooseProfileRunnable());
+          return;
+        } catch (ServiceException e) {
+          Log.e(LOG_TAG, "Error connecting to Health service: code=" + e.getCode() + ", message="
+              + e.getMessage() + ", content=" + e.getContent());
+          return;
+        }
+      }}).start();
+  }
+
+  /**
+   * Display results in the ListView.
+   */
+  protected void displayResults() {
+    Log.d(LOG_TAG, "Displaying results.");
+    // Collect the Tests from the Results and order them chronologically.
+    Set<Test> tests = new TreeSet<Test>();
     for (Result result : results) {
       tests.addAll(result.getTests());
 
@@ -353,7 +362,7 @@ public final class HealthAndroidExample extends ListActivity {
         }
       }
     }
-    
+
     // Update the text view of the main activity with the list of test results.
     Test[] items = tests.toArray(new Test[tests.size()]);
     setListAdapter(new ArrayAdapter<Test>(this, R.layout.list_item, items));
@@ -367,14 +376,65 @@ public final class HealthAndroidExample extends ListActivity {
             .show();
       }
     });
+
+    openOptionsMenu();
   }
 
-  private void handleException(Exception e) {
-    e.printStackTrace();
+  /**
+   * Runnable for (re)authenticating a user on the UI thread using a Handler.
+   */
+  protected class AuthenticateRunnable implements Runnable {
+    @Override
+    public void run() {
+      authenticate(account);
+    }
+  }
 
-    SharedPreferences settings = getSharedPreferences(PREF, 0);
-    if (settings.getBoolean("logging", false)) {
-      Log.e(LOG_TAG, e.getMessage(), e);
+  /**
+   * Runnable for choosing Health profiles on the UI thread using a Handler.
+   */
+  protected class ChooseProfileRunnable implements Runnable {
+    @Override
+    public void run() {
+      chooseProfile();
+    }
+  }
+
+  /**
+   * Threads for creating results, required since the result is a method
+   * variable, and not a class viariable that can be accessed in an anonymous
+   * inner class.
+   */
+  protected class CreateResultThread extends Thread {
+    Result result;
+
+    public CreateResultThread(Result result) {
+      this.result = result;
+    }
+
+    @Override
+    public void run() {
+      try {
+        Log.d(LOG_TAG, "Creating result.");
+        client.createResult(result);
+        handler.post(new Runnable() {
+          public void run() {
+            Log.d(LOG_TAG, "Result created.");
+            retrieveResults();
+          }
+        });
+      } catch (AuthenticationException e) {
+        Log.w(LOG_TAG, "User authentication failed. Re-authenticating.");
+        handler.post(new AuthenticateRunnable());
+      } catch (InvalidProfileException e) {
+        Log.w(LOG_TAG, "Profile invalid. Re-retreiving profiles.");
+        handler.post(new ChooseProfileRunnable());
+        return;
+      } catch (ServiceException e) {
+        Log.e(LOG_TAG, "Error connecting to Health service: code=" + e.getCode() + ", message="
+            + e.getMessage() + ", content=" + e.getContent());
+        return;
+      }
     }
   }
 }
