@@ -6,13 +6,14 @@
   android:layout_height="fill_parent">
 
   <RelativeLayout
-    android:id="@+id/main_buttons"
     android:background="#cccccc"
     android:layout_alignParentBottom="true"
-    android:layout_height="37dip"
+    android:layout_height="37dp"
     android:layout_width="fill_parent"
     android:orientation="horizontal"
-    android:padding="3px">
+    android:paddingLeft="3px"
+    android:paddingRight="3px"
+    android:paddingTop="5px">
     <Button
       android:id="@+id/main_accounts"
       android:layout_alignParentLeft="true"
@@ -33,4 +34,26 @@
     android:id="@+id/main_results"
     android:layout_height="wrap_content"
     android:layout_weight="1"/>
+  <RelativeLayout
+    android:layout_alignParentBottom="true"
+    android:layout_height="50dp"
+    android:layout_width="fill_parent"
+    android:orientation="horizontal"
+    android:paddingRight="15px"
+    android:paddingLeft="15px">
+    <Button
+      android:id="@+id/main_new_result"
+      android:layout_alignParentLeft="true"
+      android:layout_height="wrap_content"
+      android:layout_width="wrap_content"
+      android:text="@string/new_result"
+      android:textSize="12sp"/>
+    <Button
+      android:id="@+id/main_refresh"
+      android:layout_alignParentRight="true"
+      android:layout_height="wrap_content"
+      android:layout_width="wrap_content"
+      android:text="@string/refresh_results"
+      android:textSize="12sp"/>
+  </RelativeLayout>
 </LinearLayout>
