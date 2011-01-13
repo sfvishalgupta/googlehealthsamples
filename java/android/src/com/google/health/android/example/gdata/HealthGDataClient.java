@@ -17,9 +17,10 @@
 package com.google.health.android.example.gdata;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,13 +36,13 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
-import com.google.health.android.example.HealthClient;
 
 public class HealthGDataClient implements HealthClient {
   private HealthService service;
@@ -129,12 +130,26 @@ public class HealthGDataClient implements HealthClient {
     }
 
     Map<String, String> profiles = new LinkedHashMap<String, String>();
+    String data;
+    InputStream istream = null;
 
-    String data = retreiveData(service.getBaseURL() + "/profile/list");
+    try {
+      istream = retreiveData(service.getBaseURL() + "/profile/list");
+      data = bufferData(istream);
+    } catch (IOException e) {
+      throw new ServiceException(e);
+    } finally {
+      if (istream != null) {
+        try {
+          istream.close();
+        } catch (IOException e) {
+          throw new ServiceException(e);
+        }
+      }
+    }
 
     // Find the profile name/id pairs in the XML.
     Matcher matcher = PROFILE_PATTERN.matcher(data);
-
     while (matcher.find()) {
       // TODO Unescape XML escape sequences (e.g. &amp;).
       // e.g. commons-lang StringEscapeUtils.unescapeXml(matcher.group(1))
@@ -157,7 +172,7 @@ public class HealthGDataClient implements HealthClient {
     }
 
     String url = service.getBaseURL() + "/profile/ui/" + profileId + "/-/labtest?digest=true";
-    String data = retreiveData(url);
+    InputStream istream = retreiveData(url);
 
     CCRResultsHandler ccrHandler = new CCRResultsHandler();
     try {
@@ -167,13 +182,21 @@ public class HealthGDataClient implements HealthClient {
       XMLReader xr = sp.getXMLReader();
       xr.setContentHandler(ccrHandler);
       // TODO Parse stream... no need to buffer results
-      xr.parse(new InputSource(new ByteArrayInputStream(data.getBytes())));
+      xr.parse(new InputSource(istream));
     } catch (ParserConfigurationException e) {
-      return null;
+      throw new ServiceException(e);
     } catch (SAXException e) {
-      return null;
+      throw new ServiceException(e);
     } catch (IOException e) {
-      return null;
+      throw new ServiceException(e);
+    } finally {
+      if (istream != null) {
+        try {
+          istream.close();
+        } catch (IOException e) {
+          throw new ServiceException(e);
+        }
+      }
     }
 
     return ccrHandler.getResults();
@@ -203,67 +226,18 @@ public class HealthGDataClient implements HealthClient {
     return result;
   }
 
-  private String retreiveData(String requestUrl) throws AuthenticationException,
+  private InputStream retreiveData(String requestUrl) throws AuthenticationException,
       InvalidProfileException, ServiceException {
-
-    BufferedReader reader = null;
-    StringBuilder sb = new StringBuilder();
 
     HttpClient httpclient = new DefaultHttpClient();
     HttpGet httpget = new HttpGet(requestUrl);
     httpget.addHeader("Authorization", "GoogleLogin auth=" + authToken);
 
-    try {
-      HttpResponse response = httpclient.execute(httpget);
-
-      HttpEntity entity = response.getEntity();
-
-      // Buffer the response.
-      if (entity != null) {
-        reader = new BufferedReader(new InputStreamReader(entity.getContent()));
-        int read;
-        char[] buff = new char[1024];
-        while ((read = reader.read(buff)) != -1) {
-          sb.append(buff, 0, read);
-        }
-      }
-
-      int code = response.getStatusLine().getStatusCode();
-      String message = response.getStatusLine().getReasonPhrase();
-      switch (code) {
-      case 401:
-        throw new AuthenticationException(code, message, sb.toString());
-
-      case 403:
-        throw new InvalidProfileException();
-
-      case 200:
-      case 201:
-        break;
-
-      default:
-        throw new ServiceException(code, message, sb.toString());
-      }
-    } catch (IOException e) {
-      throw new ServiceException(e);
-    } finally {
-      if (reader != null) {
-        try {
-          reader.close();
-        } catch (IOException e) {
-          throw new ServiceException(e);
-        }
-      }
-    }
-
-    return sb.toString();
+    return getResponseStream(httpclient, httpget);
   }
 
-  private String postData(String requestUrl, String atom) throws AuthenticationException,
+  private InputStream postData(String requestUrl, String atom) throws AuthenticationException,
       InvalidProfileException, ServiceException {
-
-    BufferedReader reader = null;
-    StringBuilder sb = new StringBuilder();
 
     HttpClient httpclient = new DefaultHttpClient();
     HttpPost httppost = new HttpPost(requestUrl);
@@ -272,47 +246,57 @@ public class HealthGDataClient implements HealthClient {
 
     try {
       httppost.setEntity(new StringEntity(atom));
+    } catch (UnsupportedEncodingException e) {
+      throw new ServiceException(e);
+    }
 
-      // TODO The following is repeated code (retrieveData)... refactor
-      HttpResponse response = httpclient.execute(httppost);
+    return getResponseStream(httpclient, httppost);
+  }
+
+  private InputStream getResponseStream(HttpClient client, HttpUriRequest request)
+      throws AuthenticationException, InvalidProfileException, ServiceException {
+
+    try {
+      HttpResponse response = client.execute(request);
       HttpEntity entity = response.getEntity();
-
-      // Buffer the response.
-      if (entity != null) {
-        reader = new BufferedReader(new InputStreamReader(entity.getContent()));
-        int read;
-        char[] buff = new char[1024];
-        while ((read = reader.read(buff)) != -1) {
-          sb.append(buff, 0, read);
-        }
-      }
 
       int code = response.getStatusLine().getStatusCode();
       String message = response.getStatusLine().getReasonPhrase();
+
       switch (code) {
-      case 401:
-        throw new AuthenticationException(code, message, sb.toString());
-
-      case 403:
-        throw new InvalidProfileException();
-
       case 200:
       case 201:
         break;
 
+      case 401:
+        throw new AuthenticationException(code, message, bufferData(entity.getContent()));
+
+      case 403:
+        throw new InvalidProfileException();
+
       default:
-        throw new ServiceException(code, message, sb.toString());
+        throw new ServiceException(code, message, bufferData(entity.getContent()));
       }
+
+      return entity.getContent();
     } catch (IOException e) {
       throw new ServiceException(e);
-    } finally {
-      if (reader != null) {
-        try {
-          reader.close();
-        } catch (IOException e) {
-          throw new ServiceException(e);
-        }
+    }
+  }
+
+  private String bufferData(InputStream istream) throws IOException {
+    BufferedReader reader = new BufferedReader(new InputStreamReader(istream));
+
+    StringBuilder sb = new StringBuilder();
+    int read;
+    char[] buffer = new char[1024];
+
+    try {
+      while ((read = reader.read(buffer)) != -1) {
+        sb.append(buffer, 0, read);
       }
+    } finally {
+      istream.close();
     }
 
     return sb.toString();

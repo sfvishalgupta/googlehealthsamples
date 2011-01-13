@@ -46,14 +46,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 
-import com.google.health.android.example.HealthClient.AuthenticationException;
-import com.google.health.android.example.HealthClient.InvalidProfileException;
-import com.google.health.android.example.HealthClient.ServiceException;
 import com.google.health.android.example.auth.AccountChooser;
 import com.google.health.android.example.auth.AuthManager;
+import com.google.health.android.example.gdata.HealthClient;
 import com.google.health.android.example.gdata.HealthGDataClient;
 import com.google.health.android.example.gdata.Result;
 import com.google.health.android.example.gdata.Test;
+import com.google.health.android.example.gdata.HealthClient.AuthenticationException;
+import com.google.health.android.example.gdata.HealthClient.InvalidProfileException;
+import com.google.health.android.example.gdata.HealthClient.ServiceException;
 
 public final class HealthAndroidExample extends Activity {
   private static final String SERVICE_NAME = HealthClient.H9_SERVICE;
