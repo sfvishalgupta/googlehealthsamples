@@ -27,8 +27,10 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -66,6 +68,9 @@ public final class HealthAndroidExample extends Activity {
   private static final int DIALOG_PROFILES = 0;
   private static final int DIALOG_PROGRESS = 1;
   private static final int DIALOG_ERROR = 2;
+  private static final int DIALOG_TERMS = 3;
+
+  private static final String PREF_HEALTH_NOTE = "read_note";
 
   /** Property key for returning a result from a child activity. */
   public static final String RESULT_PROPERTY = "result";
@@ -90,7 +95,7 @@ public final class HealthAndroidExample extends Activity {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.main);
 
-    // Configure the main display buttons
+    // Configure the buttons
     Button button = (Button) findViewById(R.id.main_accounts);
     button.setOnClickListener(new View.OnClickListener() {
       public void onClick(View v) {
@@ -105,9 +110,29 @@ public final class HealthAndroidExample extends Activity {
       }
     });
 
+    button = (Button) findViewById(R.id.main_new_result);
+    button.setOnClickListener(new View.OnClickListener() {
+      public void onClick(View v) {
+        Intent i = new Intent(HealthAndroidExample.this, ResultAddActivity.class);
+        startActivityForResult(i, ACTIVITY_ADD_RESULT);
+      }
+    });
+
+    button = (Button) findViewById(R.id.main_refresh);
+    button.setOnClickListener(new View.OnClickListener() {
+      public void onClick(View v) {
+        retrieveResults();
+      }
+    });
+
     auth = new AuthManager(this, SERVICE_NAME);
 
-    chooseAccount();
+    // If this is the first use, display the requisite Health notice.
+    if (!getPreferences(Context.MODE_PRIVATE).getBoolean(PREF_HEALTH_NOTE, false)) {
+      showDialog(DIALOG_TERMS);
+    } else {
+      chooseAccount();
+    }
   }
 
   @Override
@@ -116,6 +141,27 @@ public final class HealthAndroidExample extends Activity {
     AlertDialog.Builder builder;
 
     switch (id) {
+    case DIALOG_TERMS:
+      builder = new AlertDialog.Builder(this);
+      builder.setTitle("Please note:");
+      builder.setMessage("If you have not yet enabled your Google Health account, "
+          + "any data uploaded by this application will be held at Google until you do so. "
+          + "To enable your account and view your data, "
+          + "just go to https://health.google.com and sign in.");
+      builder.setPositiveButton("Close", new DialogInterface.OnClickListener() {
+        public void onClick(DialogInterface dialog, int id) {
+          // Store that the user has read the note.
+          Editor e = getPreferences(Context.MODE_PRIVATE).edit();
+          e.putBoolean(PREF_HEALTH_NOTE, true);
+          e.commit();
+
+          chooseAccount();
+        }
+      });
+
+      dialog = builder.create();
+      break;
+
     case DIALOG_PROGRESS:
       dialog = ProgressDialog.show(HealthAndroidExample.this, "", "Loading. Please wait...", true);
       break;
@@ -153,7 +199,6 @@ public final class HealthAndroidExample extends Activity {
       builder.setCancelable(true);
       builder.setPositiveButton("Close", new DialogInterface.OnClickListener() {
         public void onClick(DialogInterface dialog, int id) {
-          dialog.cancel();
         }
       });
 
@@ -360,7 +405,7 @@ public final class HealthAndroidExample extends Activity {
   }
 
   /**
-   * Display results in the ListView.
+   * Display results in the main activity's test result list.
    */
   protected void displayResults() {
     Log.d(LOG_TAG, "Displaying results.");
@@ -389,9 +434,22 @@ public final class HealthAndroidExample extends Activity {
       }
     });
 
-    openOptionsMenu();
+    // Display a notice if not results found.
+    if (items.length == 0) {
+      Toast.makeText(getApplicationContext(), "No test results in profile.", Toast.LENGTH_LONG).show();
+    }
   }
 
+  /**
+   * Method processes network connectivity exceptions, which will
+   * re-authenticate the user, re-request a Health profile, or request that the
+   * user check the network connection.
+   *
+   * @param e
+   *          The network connectivity exception to process, which can be a
+   *          AuthenticationException, InvalidProfileException, or
+   *          ServiceException.
+   */
   protected void handleException(Exception e) {
     if (e instanceof AuthenticationException ) {
       Log.w(LOG_TAG, "User authentication failed. Re-authenticating.");
