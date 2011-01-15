@@ -57,8 +57,27 @@ public class ResultAddActivity extends Activity {
   private int year;
 
   static {
+    RESULTS.put("Blood glucose", "mg/dL");
     RESULTS.put("Blood pressure", "mmHg");
-    RESULTS.put("Height", "inches");
+    RESULTS.put("Body temperature", "degrees Fahrenheit");
+    RESULTS.put("Breathing", "breaths/min");
+    RESULTS.put("Calories burned", "calories");
+    RESULTS.put("Calories consumed", "calories");
+    RESULTS.put("Cycling distance", "miles");
+    RESULTS.put("Cycling time", "minutes");
+    RESULTS.put("Exercise minutes", "minutes");
+    RESULTS.put("Heart rate", "bpm");
+    RESULTS.put("Height", "in");
+    RESULTS.put("Hours slept", "hours");
+    RESULTS.put("Peak flow", "liters/sec");
+    RESULTS.put("Running distance", "miles");
+    RESULTS.put("Running time", "minutes");
+    RESULTS.put("Steps taken", "steps");
+    RESULTS.put("Swimming distance", "meters");
+    RESULTS.put("Swimming time", "minutes");
+    RESULTS.put("Vegetable servings", "servings");
+    RESULTS.put("Walking distance", "miles");
+    RESULTS.put("Walking time", "minutes");
     RESULTS.put("Weight", "lb");
   }
 
