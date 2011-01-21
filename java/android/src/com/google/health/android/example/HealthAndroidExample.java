@@ -33,6 +33,8 @@ import android.content.Intent;
 import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.SpannableString;
+import android.text.util.Linkify;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -143,12 +145,13 @@ public final class HealthAndroidExample extends Activity {
 
     switch (id) {
     case DIALOG_TERMS:
+      final SpannableString msg = new SpannableString(getApplicationContext().getText(
+          R.string.health_notice));
+      Linkify.addLinks(msg, Linkify.WEB_URLS);
+
       builder = new AlertDialog.Builder(this);
       builder.setTitle("Please note:");
-      builder.setMessage("If you have not yet enabled your Google Health account, "
-          + "any data uploaded by this application will be held at Google until you do so. "
-          + "To enable your account and view your data, "
-          + "just go to https://health.google.com and sign in.");
+      builder.setMessage(msg);
       builder.setPositiveButton("Close", new DialogInterface.OnClickListener() {
         public void onClick(DialogInterface dialog, int id) {
           // Store that the user has read the note.
