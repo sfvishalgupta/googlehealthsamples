@@ -38,7 +38,7 @@ import android.widget.TextView;
 import com.google.health.android.example.gdata.Result;
 import com.google.health.android.example.gdata.Test;
 
-public class ResultAddActivity extends Activity {
+public class AddResultActivity extends Activity {
 
   private static final TreeMap<String, String> RESULTS = new TreeMap<String, String>();
 

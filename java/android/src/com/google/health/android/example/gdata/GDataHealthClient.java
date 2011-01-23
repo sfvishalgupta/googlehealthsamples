@@ -43,8 +43,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 
-
-public class HealthGDataClient implements HealthClient {
+public class GDataHealthClient implements HealthClient {
   private HealthService service;
   private String profileId;
   private String authToken;
@@ -87,11 +86,11 @@ public class HealthGDataClient implements HealthClient {
   static final String CCR_HEADER = "<ContinuityOfCareRecord xmlns=\"urn:astm-org:CCR\">";
   static final String CCR_FOOTER = "</ContinuityOfCareRecord>";
 
-  public HealthGDataClient(HealthService service) {
+  public GDataHealthClient(HealthService service) {
     this.service = service;
   }
 
-  public HealthGDataClient(String serviceName) {
+  public GDataHealthClient(String serviceName) {
     if (HealthService.H9.getName().equals(serviceName)) {
       this.service = HealthService.H9;
     } else if (HealthService.HEALTH.getName().equals(serviceName)) {
@@ -151,7 +150,7 @@ public class HealthGDataClient implements HealthClient {
     // Find the profile name/id pairs in the XML.
     Matcher matcher = PROFILE_PATTERN.matcher(data);
     while (matcher.find()) {
-      // TODO Unescape XML escape sequences (e.g. &amp;).
+      // TODO Un-escape XML escape sequences (e.g. &amp;).
       // e.g. commons-lang StringEscapeUtils.unescapeXml(matcher.group(1))
       profiles.put(matcher.group(2), matcher.group(1));
     }
@@ -181,7 +180,6 @@ public class HealthGDataClient implements HealthClient {
 
       XMLReader xr = sp.getXMLReader();
       xr.setContentHandler(ccrHandler);
-      // TODO Parse stream... no need to buffer results
       xr.parse(new InputSource(istream));
     } catch (ParserConfigurationException e) {
       throw new ServiceException(e);

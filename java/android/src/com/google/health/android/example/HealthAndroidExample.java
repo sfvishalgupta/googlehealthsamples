@@ -30,9 +30,10 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.DialogInterface.OnCancelListener;
 import android.content.SharedPreferences.Editor;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
 import android.text.SpannableString;
 import android.text.util.Linkify;
 import android.util.Log;
@@ -51,7 +52,7 @@ import android.widget.AdapterView.OnItemClickListener;
 import com.google.health.android.example.auth.AccountChooser;
 import com.google.health.android.example.auth.AuthManager;
 import com.google.health.android.example.gdata.HealthClient;
-import com.google.health.android.example.gdata.HealthGDataClient;
+import com.google.health.android.example.gdata.GDataHealthClient;
 import com.google.health.android.example.gdata.Result;
 import com.google.health.android.example.gdata.Test;
 import com.google.health.android.example.gdata.HealthClient.AuthenticationException;
@@ -80,11 +81,8 @@ public final class HealthAndroidExample extends Activity {
 
   public static final String ACCOUNT_TYPE = "com.google";
 
-  /** Handler for posting results from worker threads to UI thread. */
-  private final Handler handler = new Handler();
-
   /** Service client for send to and retrieving information from Google Health. */
-  private final HealthClient client = new HealthGDataClient(SERVICE_NAME);
+  private final HealthClient client = new GDataHealthClient(SERVICE_NAME);
 
   private Map<String, String> profiles = new LinkedHashMap<String, String>();
 
@@ -92,6 +90,9 @@ public final class HealthAndroidExample extends Activity {
 
   private AuthManager auth;
   private Account account;
+
+  @SuppressWarnings("unchecked")
+  private AsyncTask currentTask;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -116,7 +117,7 @@ public final class HealthAndroidExample extends Activity {
     button = (Button) findViewById(R.id.main_new_result);
     button.setOnClickListener(new View.OnClickListener() {
       public void onClick(View v) {
-        Intent i = new Intent(HealthAndroidExample.this, ResultAddActivity.class);
+        Intent i = new Intent(HealthAndroidExample.this, AddResultActivity.class);
         startActivityForResult(i, ACTIVITY_ADD_RESULT);
       }
     });
@@ -145,9 +146,9 @@ public final class HealthAndroidExample extends Activity {
 
     switch (id) {
     case DIALOG_TERMS:
-      final SpannableString msg = new SpannableString(getApplicationContext().getText(
-          R.string.health_notice));
+      final SpannableString msg = new SpannableString(this.getString(R.string.health_notice));
       Linkify.addLinks(msg, Linkify.WEB_URLS);
+      // TODO Make links click-able
 
       builder = new AlertDialog.Builder(this);
       builder.setTitle("Please note:");
@@ -167,7 +168,15 @@ public final class HealthAndroidExample extends Activity {
       break;
 
     case DIALOG_PROGRESS:
-      dialog = ProgressDialog.show(HealthAndroidExample.this, "", "Loading. Please wait...", true);
+      dialog = ProgressDialog.show(HealthAndroidExample.this, "", this.getString(R.string.loading),
+          true);
+      dialog.setCancelable(true);
+      dialog.setOnCancelListener(new OnCancelListener() {
+        @Override
+        public void onCancel(DialogInterface dialog) {
+          currentTask.cancel(true);
+        }
+      });
       break;
 
     case DIALOG_PROFILES:
@@ -251,7 +260,7 @@ public final class HealthAndroidExample extends Activity {
         Result result = (Result) bundle.get(RESULT_PROPERTY);
 
         showDialog(DIALOG_PROGRESS);
-        new CreateResultThread(result).start();
+        currentTask = new CreateResultTask().execute(result);
       }
       break;
     }
@@ -276,7 +285,7 @@ public final class HealthAndroidExample extends Activity {
   public boolean onOptionsItemSelected(MenuItem item) {
     switch (item.getItemId()) {
     case R.id.new_result:
-      Intent i = new Intent(this, ResultAddActivity.class);
+      Intent i = new Intent(this, AddResultActivity.class);
       startActivityForResult(i, ACTIVITY_ADD_RESULT);
       return true;
 
@@ -312,7 +321,6 @@ public final class HealthAndroidExample extends Activity {
         if (account == null) {
           return;
         }
-
         authenticate(account);
       }
     });
@@ -362,25 +370,7 @@ public final class HealthAndroidExample extends Activity {
     }
 
     showDialog(DIALOG_PROGRESS);
-
-    new Thread(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          Log.d(LOG_TAG, "Retreiving profiles.");
-          profiles = client.retrieveProfiles();
-          handler.post(new Runnable() {
-            public void run() {
-              Log.d(LOG_TAG, "Profiles retrieved.");
-              dismissDialog(DIALOG_PROGRESS);
-              showDialog(DIALOG_PROFILES);
-            }
-          });
-        } catch (Exception e) {
-          handleException(e);
-        }
-      }
-    }).start();
+    currentTask = new RetrieveProfilesTask().execute();
   }
 
   /**
@@ -388,24 +378,7 @@ public final class HealthAndroidExample extends Activity {
    */
   protected void retrieveResults() {
     showDialog(DIALOG_PROGRESS);
-
-    new Thread(new Runnable() {
-      @Override
-      public void run() {
-        try {
-          Log.d(LOG_TAG, "Retreiving results.");
-          results = client.retrieveResults();
-          handler.post(new Runnable() {
-            public void run() {
-              Log.d(LOG_TAG, "Results retrieved.");
-              dismissDialog(DIALOG_PROGRESS);
-              displayResults();
-            }
-          });
-        } catch (Exception e) {
-          handleException(e);
-        }
-      }}).start();
+    currentTask = new RetrieveResultsTask().execute();
   }
 
   /**
@@ -422,7 +395,6 @@ public final class HealthAndroidExample extends Activity {
           test.setDate(result.getDate());
         }
       }
-
       tests.addAll(result.getTests());
     }
     Test[] items = tests.toArray(new Test[tests.size()]);
@@ -455,71 +427,102 @@ public final class HealthAndroidExample extends Activity {
    *          ServiceException.
    */
   protected void handleException(Exception e) {
-    if (e instanceof AuthenticationException ) {
+    if (e instanceof AuthenticationException) {
       Log.w(LOG_TAG, "User authentication failed. Re-authenticating.");
-      handler.post(new Runnable() {
-        @Override
-        public void run() {
-          authenticate(account);
-        }
-      });
+      authenticate(account);
     } else if (e instanceof InvalidProfileException) {
       Log.w(LOG_TAG, "Profile invalid. Re-retrieving profiles.");
-      handler.post(new Runnable() {
-        @Override
-        public void run() {
-          chooseProfile();
-        }
-      });
-      return;
+      chooseProfile();
     } else if (e instanceof ServiceException) {
       if (e.getCause() != null) {
         // Likely no network connectivity.
         Log.e(LOG_TAG, "Error connecting to Health service.", e);
       } else {
-        ServiceException se = (ServiceException)e;
+        ServiceException se = (ServiceException) e;
         Log.e(LOG_TAG, "Error connecting to Health service: code=" + se.getCode() + ", message="
             + e.getMessage() + ", content=" + se.getContent());
       }
 
       // Remove the progress dialog and display the error.
       dismissDialog(DIALOG_PROGRESS);
-      handler.post(new Runnable() {
-        @Override
-        public void run() {
-          showDialog(DIALOG_ERROR);
-        }});
-
-      return;
+      showDialog(DIALOG_ERROR);
     }
   }
 
-  /**
-   * Threads for creating results, required since the result is a method
-   * variable, and not a class variable that can be accessed in an anonymous
-   * inner class.
-   */
-  protected class CreateResultThread extends Thread {
-    Result result;
-
-    public CreateResultThread(Result result) {
-      this.result = result;
-    }
+  protected class CreateResultTask extends AsyncTask<Result, Void, Void> {
+    private Exception exception;
 
     @Override
-    public void run() {
+    protected Void doInBackground(Result... results) {
+      Log.d(LOG_TAG, "Creating result.");
       try {
-        Log.d(LOG_TAG, "Creating result.");
-        client.createResult(result);
-        handler.post(new Runnable() {
-          public void run() {
-            Log.d(LOG_TAG, "Result created.");
-            retrieveResults();
-          }
-        });
+        client.createResult(results[0]);
       } catch (Exception e) {
-        handleException(e);
+        exception = e;
       }
+      return null;
+    }
+
+    protected void onPostExecute(Void result) {
+      if (exception != null) {
+        handleException(exception);
+        return;
+      }
+
+      Log.d(LOG_TAG, "Result created.");
+      retrieveResults();
+    }
+  }
+
+  protected class RetrieveProfilesTask extends AsyncTask<Void, Void, Void> {
+    private Exception exception;
+
+    @Override
+    protected Void doInBackground(Void... params) {
+      Log.d(LOG_TAG, "Retreiving profiles.");
+      try {
+        profiles = client.retrieveProfiles();
+      } catch (Exception e) {
+        exception = e;
+      }
+      return null;
+    }
+
+    protected void onPostExecute(Void result) {
+      if (exception != null) {
+        handleException(exception);
+        return;
+      }
+
+      Log.d(LOG_TAG, "Profiles retrieved.");
+      dismissDialog(DIALOG_PROGRESS);
+      showDialog(DIALOG_PROFILES);
+    }
+  }
+
+  protected class RetrieveResultsTask extends AsyncTask<Void, Void, Void> {
+    private Exception exception;
+
+    @Override
+    protected Void doInBackground(Void... params) {
+      try {
+        Log.d(LOG_TAG, "Retreiving results.");
+        results = client.retrieveResults();
+      } catch (Exception e) {
+        exception = e;
+      }
+      return null;
+    }
+
+    protected void onPostExecute(Void results) {
+      if (exception != null) {
+        handleException(exception);
+        return;
+      }
+
+      Log.d(LOG_TAG, "Results retrieved.");
+      dismissDialog(DIALOG_PROGRESS);
+      displayResults();
     }
   }
 }

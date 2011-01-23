@@ -82,7 +82,7 @@ public class AuthManager {
   public void doLogin(final Runnable runnable, Object o) {
     this.whenFinished = runnable;
     if (!(o instanceof Account)) {
-      throw new IllegalArgumentException("FroyoAuthManager requires an account.");
+      throw new IllegalArgumentException("AuthManager requires an account.");
     }
     Account account = (Account) o;
     accountManager.getAuthToken(account, service, true, new AccountManagerCallback<Bundle>() {
