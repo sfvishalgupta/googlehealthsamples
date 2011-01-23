@@ -22,7 +22,7 @@
       </intent-filter>
     </activity>
 
-    <activity android:name="ResultAddActivity" android:label="@string/resultAddTitle" />
+    <activity android:name="AddResultActivity" android:label="@string/add_result_title" />
   </application>
 
   <uses-permission android:name="android.permission.INTERNET" />

@@ -11,7 +11,7 @@
   <string name="save">Save</string>
   <string name="cancel">Cancel</string>
 
-  <string name="resultAddTitle">Add Result</string>
+  <string name="add_result_title">Add Result</string>
   <string name="resultTypeLabelText">Type</string>
   <string name="resultValueLabelText">Value</string>
   <string name="resultDateLabelText">Date</string>
@@ -19,7 +19,8 @@
 
   <!-- Google account selection -->
   <string name="no_account_found_title">No Account Found</string>
-  <string name="no_account_found">No account found to upload tracks to.</string>
+  <string name="no_account_found">No account found on device for connecting to
+    Google services.</string>
   <string name="choose_account_title">Choose Account</string>
 
   <!-- Common -->
@@ -28,6 +29,9 @@
   <!-- Dashboard -->
   <string name="main_account">Account</string>
   <string name="main_profile">Profile</string>
+
+  <!-- Progress dialog text -->
+  <string name="loading">Loading... Please wait.</string>
 
   <!-- Terms dialog text -->
   <string name="health_notice">If you have not yet enabled your Google Health
