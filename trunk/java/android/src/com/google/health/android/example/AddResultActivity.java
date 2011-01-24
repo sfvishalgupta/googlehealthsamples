@@ -56,6 +56,7 @@ public class AddResultActivity extends Activity {
   private int month;
   private int year;
 
+  // TODO Load template results instead of map
   static {
     RESULTS.put("Blood glucose", "mg/dL");
     RESULTS.put("Blood pressure", "mmHg");
@@ -84,15 +85,15 @@ public class AddResultActivity extends Activity {
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.result_add_view);
+    setContentView(R.layout.add_result_view);
 
-    typeAdapter = new ArrayAdapter<String>(this, R.layout.result_type_spinner_item);
-    typeAdapter.setDropDownViewResource(R.layout.result_type_dropdown_item);
+    typeAdapter = new ArrayAdapter<String>(this, R.layout.add_result_type_spinner);
+    typeAdapter.setDropDownViewResource(R.layout.add_result_type_spinner_item);
     for (String key : RESULTS.keySet()) {
       typeAdapter.add(key);
     }
 
-    typeSpinner = (Spinner) findViewById(R.id.resultTypeSpinner);
+    typeSpinner = (Spinner) findViewById(R.id.add_result_type_spinner);
     typeSpinner.setAdapter(typeAdapter);
     typeSpinner.setOnItemSelectedListener(new Spinner.OnItemSelectedListener() {
       @Override
@@ -106,9 +107,9 @@ public class AddResultActivity extends Activity {
       }
     });
 
-    valueText = (EditText) findViewById(R.id.resultValueText);
+    valueText = (EditText) findViewById(R.id.add_result_value);
 
-    unitsLabel = (TextView) findViewById(R.id.resultUnitsLabel);
+    unitsLabel = (TextView) findViewById(R.id.add_result_units);
     unitsLabel.setText(RESULTS.get(RESULTS.firstKey()));
 
     Calendar cal = Calendar.getInstance();
