@@ -13,7 +13,8 @@
     android:orientation="horizontal"
     android:paddingLeft="3px"
     android:paddingRight="3px"
-    android:paddingTop="5px">
+    android:paddingTop="5px"
+    android:paddingBottom="0px">
     <Button
       android:id="@+id/main_accounts"
       android:layout_alignParentLeft="true"
@@ -35,12 +36,15 @@
     android:layout_height="wrap_content"
     android:layout_weight="1"/>
   <RelativeLayout
+    android:background="#cccccc"
     android:layout_alignParentBottom="true"
     android:layout_height="50dp"
     android:layout_width="fill_parent"
     android:orientation="horizontal"
     android:paddingRight="15px"
-    android:paddingLeft="15px">
+    android:paddingLeft="15px"
+    android:paddingTop="5px"
+    android:paddingBottom="0px">
     <Button
       android:id="@+id/main_new_result"
       android:layout_alignParentLeft="true"
