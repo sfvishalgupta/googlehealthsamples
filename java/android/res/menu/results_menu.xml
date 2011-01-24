@@ -1,10 +1,18 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-  <item android:id="@+id/new_result" android:title="@string/new_result"
+  <item
+    android:id="@+id/menu_new_result"
+    android:title="@string/new_result"
     android:icon="@android:drawable/ic_menu_add" />
-  <item android:id="@+id/refresh_results" android:title="@string/refresh_results"
+  <item
+    android:id="@+id/menu_refresh_results"
+    android:title="@string/refresh_results"
     android:icon="@drawable/ic_menu_refresh" />
-  <item android:id="@+id/choose_account" android:title="@string/choose_account"
+  <item
+    android:id="@+id/menu_choose_account"
+    android:title="@string/choose_account"
     android:icon="@drawable/ic_menu_account_list" />
-  <item android:id="@+id/choose_profile" android:title="@string/choose_profile"
+  <item
+    android:id="@+id/menu_choose_profile"
+    android:title="@string/choose_profile"
     android:icon="@drawable/ic_menu_friendslist" />
 </menu>

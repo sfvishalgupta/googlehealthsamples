@@ -19,14 +19,14 @@
       android:layout_alignParentLeft="true"
       android:layout_height="wrap_content"
       android:layout_width="wrap_content"
-      android:text="@string/main_account"
+      android:text="@string/account"
       android:textSize="12sp"/>
     <Button
       android:id="@+id/main_profiles"
       android:layout_alignParentRight="true"
       android:layout_height="wrap_content"
       android:layout_width="wrap_content"
-      android:text="@string/main_profile"
+      android:text="@string/profile"
       android:textSize="12sp"/>
   </RelativeLayout>
   <ListView

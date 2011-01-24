@@ -97,7 +97,7 @@ public final class HealthAndroidExample extends Activity {
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.main);
+    setContentView(R.layout.main_view);
 
     // Configure the buttons
     Button button = (Button) findViewById(R.id.main_accounts);
@@ -183,7 +183,7 @@ public final class HealthAndroidExample extends Activity {
       String[] profileNames = profiles.values().toArray(new String[profiles.size()]);
 
       builder = new AlertDialog.Builder(this);
-      builder.setTitle("Select a Health profile");
+      builder.setTitle(this.getText(R.string.choose_profile));
       builder.setItems(profileNames, new DialogInterface.OnClickListener() {
         public void onClick(DialogInterface dialog, int i) {
           // Remove the dialog so that it's refreshed with new list items the
@@ -206,9 +206,8 @@ public final class HealthAndroidExample extends Activity {
 
     case DIALOG_ERROR:
       builder = new AlertDialog.Builder(this);
-      builder.setTitle("Connection Error");
-      builder.setMessage("Unable to connect to Google Health service. "
-          + "Please check your network connection and try again.");
+      builder.setTitle(this.getText(R.string.connection_error_title));
+      builder.setMessage(R.string.connection_error_message);
       builder.setCancelable(true);
       builder.setPositiveButton("Close", new DialogInterface.OnClickListener() {
         public void onClick(DialogInterface dialog, int id) {
@@ -284,20 +283,20 @@ public final class HealthAndroidExample extends Activity {
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     switch (item.getItemId()) {
-    case R.id.new_result:
+    case R.id.menu_new_result:
       Intent i = new Intent(this, AddResultActivity.class);
       startActivityForResult(i, ACTIVITY_ADD_RESULT);
       return true;
 
-    case R.id.refresh_results:
+    case R.id.menu_refresh_results:
       retrieveResults();
       return true;
 
-    case R.id.choose_profile:
+    case R.id.menu_choose_profile:
       chooseProfile();
       return true;
 
-    case R.id.choose_account:
+    case R.id.menu_choose_account:
       chooseAccount();
       return true;
 
@@ -336,16 +335,6 @@ public final class HealthAndroidExample extends Activity {
    */
   protected void authenticate(Account account) {
     Log.d(LOG_TAG, "Authenticating account.");
-    if (this.account == account) {
-      Log.d(LOG_TAG, "Invalidating token.");
-      // If we're re-authenticating the same account, invalidate the old token
-      // before proceeding.
-      auth.invalidateAuthToken(new Runnable() {
-        public void run() {
-          Log.d(LOG_TAG, "Token invalidated.");
-        }
-      });
-    }
 
     this.account = account;
 
@@ -401,7 +390,7 @@ public final class HealthAndroidExample extends Activity {
 
     // Update the text view of the main activity with the list of test results.
     ListView lv = (ListView) findViewById(R.id.main_results);
-    lv.setAdapter(new ArrayAdapter<Test>(this, R.layout.list_item, items));
+    lv.setAdapter(new ArrayAdapter<Test>(this, R.layout.results_list_item, items));
 
     lv.setOnItemClickListener(new OnItemClickListener() {
       public void onItemClick(AdapterView<?> parent, View view, int position, long id) {

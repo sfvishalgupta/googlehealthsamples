@@ -3,38 +3,53 @@
   android:layout_height="fill_parent"
   android:padding="5px">
 
-  <TableLayout android:layout_width="fill_parent"
+  <TableLayout
+    android:layout_width="fill_parent"
     android:layout_height="fill_parent">
 
     <TableRow>
-      <TextView android:layout_width="wrap_content"
-        android:layout_height="wrap_content" android:text="@string/resultTypeLabelText" />
+      <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/add_result_type" />
     </TableRow>
 
     <TableRow>
-      <Spinner android:layout_height="wrap_content"
-        android:layout_width="fill_parent" android:layout_weight="1"
-        android:id="@+id/resultTypeSpinner" />
+      <Spinner
+        android:id="@+id/add_result_type_spinner"
+        android:layout_height="wrap_content"
+        android:layout_width="fill_parent"
+        android:layout_weight="1" />
     </TableRow>
 
     <TableRow>
-      <TextView android:layout_width="wrap_content"
-        android:layout_height="wrap_content" android:text="@string/resultValueLabelText" />
+      <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/add_result_value" />
     </TableRow>
 
     <TableRow>
-      <EditText android:id="@+id/resultValueText"
-        android:layout_height="wrap_content" android:layout_width="wrap_content"
-        android:layout_weight="1" android:singleLine="true"
+      <EditText
+        android:id="@+id/add_result_value"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_weight="1"
+        android:singleLine="true"
         android:inputType="numberSigned|numberDecimal|text" />
-      <TextView android:id="@+id/resultUnitsLabel"
-        android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:text="@string/resultUnitsLabelText" android:paddingLeft="5px" />
+      <TextView
+        android:id="@+id/add_result_units"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/add_result_units"
+        android:paddingLeft="5px" />
     </TableRow>
 
     <TableRow>
-      <TextView android:layout_width="wrap_content"
-        android:layout_height="wrap_content" android:text="@string/resultDateLabelText" />
+      <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/add_result_date" />
     </TableRow>
 
     <TableRow>
