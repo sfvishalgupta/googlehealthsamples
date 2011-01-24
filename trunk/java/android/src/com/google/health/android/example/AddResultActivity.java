@@ -117,7 +117,7 @@ public class AddResultActivity extends Activity {
     month = cal.get(Calendar.MONTH);
     day = cal.get(Calendar.DAY_OF_MONTH);
 
-    dateText = (EditText) findViewById(R.id.resultDateText);
+    dateText = (EditText) findViewById(R.id.add_result_date);
     dateText.setText(year + "-" + (month + 1) + "-" + day);
     dateText.setOnClickListener(new View.OnClickListener() {
       public void onClick(View v) {
@@ -135,14 +135,14 @@ public class AddResultActivity extends Activity {
       }
     };
 
-    Button button = (Button) findViewById(R.id.resultDateButton);
+    Button button = (Button) findViewById(R.id.add_result_date_button);
     button.setOnClickListener(new View.OnClickListener() {
       public void onClick(View v) {
         showDialog(DATE_DIALOG);
       }
     });
 
-    button = (Button) findViewById(R.id.resultSaveButton);
+    button = (Button) findViewById(R.id.add_result_save_button);
     button.setOnClickListener(new View.OnClickListener() {
       public void onClick(View v) {
         String resultName = typeAdapter.getItem(typeSpinner.getSelectedItemPosition());
@@ -173,7 +173,7 @@ public class AddResultActivity extends Activity {
       }
     });
 
-    button = (Button) findViewById(R.id.resultCancelButton);
+    button = (Button) findViewById(R.id.add_result_cancel_button);
     button.setOnClickListener(new View.OnClickListener() {
       public void onClick(View v) {
         setResult(RESULT_CANCELED);

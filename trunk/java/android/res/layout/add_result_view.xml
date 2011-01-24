@@ -53,21 +53,34 @@
     </TableRow>
 
     <TableRow>
-      <EditText android:id="@+id/resultDateText" android:layout_width="wrap_content"
-        android:layout_height="wrap_content" android:layout_weight="1" android:focusable="false"
+      <EditText
+        android:id="@+id/add_result_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:focusable="false"
         android:singleLine="true"/>
-      <Button android:id="@+id/resultDateButton" android:layout_width="wrap_content"
+      <Button
+        android:id="@+id/add_result_date_button"
+        android:layout_width="wrap_content"
         android:background="@android:color/transparent"
-        android:layout_height="wrap_content" android:drawableLeft="@drawable/calendar" />
+        android:layout_height="wrap_content"
+        android:drawableLeft="@drawable/calendar" />
     </TableRow>
 
     <TableRow android:paddingTop="10px">
-      <Button android:layout_height="wrap_content" android:text="@string/save"
-        android:id="@+id/resultSaveButton" android:layout_width="fill_parent"
-        android:layout_weight="1" />
-      <Button android:layout_height="wrap_content" android:text="@string/cancel"
-        android:id="@+id/resultCancelButton" android:layout_width="fill_parent"
-        android:layout_weight="1" />
+      <Button
+        android:id="@+id/add_result_save_button"
+        android:layout_height="wrap_content"
+        android:layout_width="fill_parent"
+        android:layout_weight="1"
+        android:text="@string/save" />
+      <Button
+        android:id="@+id/add_result_cancel_button"
+        android:layout_height="wrap_content"
+        android:layout_width="fill_parent"
+        android:layout_weight="1"
+        android:text="@string/cancel" />
     </TableRow>
   </TableLayout>
 </ScrollView>
