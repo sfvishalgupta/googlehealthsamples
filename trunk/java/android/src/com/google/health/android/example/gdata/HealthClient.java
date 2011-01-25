@@ -25,6 +25,9 @@ public interface HealthClient {
   public abstract Result createResult(Result result) throws AuthenticationException,
       InvalidProfileException, ServiceException;
 
+  public abstract void deleteResult(Result result) throws AuthenticationException,
+      InvalidProfileException, ServiceException;
+
   @SuppressWarnings("serial")
   public class AuthenticationException extends ServiceException {
     public AuthenticationException(int code, String message, String content) {

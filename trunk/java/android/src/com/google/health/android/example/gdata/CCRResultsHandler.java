@@ -32,6 +32,9 @@ import com.google.health.android.example.gdata.CCRObject.DateType;
  */
 public class CCRResultsHandler extends DefaultHandler {
 
+  private static final String ATOM_ID = "id";
+
+  private static final String CCR_RESULTS = "Results";
   private static final String CCR_RESULT = "Result";
   private static final String CCR_TEST = "Test";
   private static final String CCR_DATETIME = "DateTime";
@@ -42,10 +45,12 @@ public class CCRResultsHandler extends DefaultHandler {
   private static final String CCR_DESCRIPTION = "Description";
   private static final String CCR_TYPE = "Type";
 
+  private String id;
+
   private List<Result> results;
   private Stack<String> stack;
 
-  private Test test;
+  private TestResult test;
   private Result result;
 
   private String dateType;
@@ -65,10 +70,11 @@ public class CCRResultsHandler extends DefaultHandler {
 
     // Only process results in the "Results" section (not VitalSigns)
     // TODO Update handling since we'll miss blood type in VitalSigns
-    if (localName.equals(CCR_RESULT) && stack.peek().equals("Results")) {
+    if (localName.equals(CCR_RESULT) && stack.peek().equals(CCR_RESULTS)) {
       result = new Result();
+      result.setId(id);
     } else if (localName.equals(CCR_TEST)) {
-      test = new Test();
+      test = new TestResult();
     }
 
     stack.push(localName);
@@ -87,7 +93,7 @@ public class CCRResultsHandler extends DefaultHandler {
       results.add(result);
       result = null;
     } else if (localName.equals(CCR_TEST)) {
-      result.addTest(test);
+      result.addTestResult(test);
       test = null;
     } else if (localName.equals(CCR_DATETIME)) {
       // If we have an appropriate date, assign it to the test or result.
@@ -121,8 +127,8 @@ public class CCRResultsHandler extends DefaultHandler {
 
   @Override
   public void characters(char ch[], int start, int length) {
-    // Code only processing Results and sub-elements.
-    if (result == null) {
+    // Code only processing Results and sub-elements, and Atom ids.
+    if (result == null && stack.peek() != ATOM_ID) {
       return;
     }
 
@@ -142,6 +148,8 @@ public class CCRResultsHandler extends DefaultHandler {
       date = text;
     } else if (stack.peek().equals(CCR_TEXT)) {
       this.text = text;
+    } else if (stack.peek().equals(ATOM_ID)) {
+      this.id = text.substring(text.lastIndexOf("/") + 1);
     }
   }
 

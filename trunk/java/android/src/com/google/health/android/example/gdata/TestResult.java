@@ -16,7 +16,6 @@
 
 package com.google.health.android.example.gdata;
 
-import java.io.Serializable;
 
 /**
  * Unsupported:
@@ -24,7 +23,7 @@ import java.io.Serializable;
  * - Codes
  */
 @SuppressWarnings("serial")
-public class Test extends CCRObject implements Comparable<Test>, Serializable {
+public class TestResult extends CCRObject {
 
   /** Params: value, units */
   static final String TEST_RESULT =
@@ -69,7 +68,7 @@ public class Test extends CCRObject implements Comparable<Test>, Serializable {
 
   @Override
   public String toString() {
-    return name + " " + " " + value + " " + units + " " + date;
+    return name + "\n" + value + " " + units + "\n" + date;
   }
 
   @Override
@@ -91,26 +90,5 @@ public class Test extends CCRObject implements Comparable<Test>, Serializable {
     sb.append("</Test>");
 
     return sb.toString();
-  }
-
-  @Override
-  public int compareTo(Test t2) {
-    int x = 0;
-
-    if (this.getDate() != null && t2.getDate() != null) {
-      x = this.getDate().compareTo(t2.getDate());
-    }
-
-    if (x != 0) {
-      return x;
-    }
-
-    x = this.getName().compareTo(t2.getName());
-
-    if (x != 0) {
-      return x;
-    }
-
-    return -1;
   }
 }

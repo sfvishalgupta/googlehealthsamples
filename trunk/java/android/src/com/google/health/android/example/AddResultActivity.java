@@ -36,7 +36,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.google.health.android.example.gdata.Result;
-import com.google.health.android.example.gdata.Test;
+import com.google.health.android.example.gdata.TestResult;
 
 public class AddResultActivity extends Activity {
 
@@ -147,7 +147,7 @@ public class AddResultActivity extends Activity {
       public void onClick(View v) {
         String resultName = typeAdapter.getItem(typeSpinner.getSelectedItemPosition());
 
-        Test test = new Test();
+        TestResult test = new TestResult();
         test.setName(resultName);
         test.setValue(valueText.getText().toString());
         test.setUnits(RESULTS.get(resultName));
@@ -155,7 +155,7 @@ public class AddResultActivity extends Activity {
         test.setDate(year + "-" + (month + 1) + "-" + day);
 
         Result result = new Result();
-        result.addTest(test);
+        result.addTestResult(test);
 
         Bundle bundle = new Bundle();
         bundle.putSerializable(HealthAndroidExample.RESULT_PROPERTY, result);

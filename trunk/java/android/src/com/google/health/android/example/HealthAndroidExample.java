@@ -44,17 +44,16 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckedTextView;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.AdapterView.OnItemClickListener;
 
 import com.google.health.android.example.auth.AccountChooser;
 import com.google.health.android.example.auth.AuthManager;
-import com.google.health.android.example.gdata.HealthClient;
 import com.google.health.android.example.gdata.GDataHealthClient;
+import com.google.health.android.example.gdata.HealthClient;
 import com.google.health.android.example.gdata.Result;
-import com.google.health.android.example.gdata.Test;
 import com.google.health.android.example.gdata.HealthClient.AuthenticationException;
 import com.google.health.android.example.gdata.HealthClient.InvalidProfileException;
 import com.google.health.android.example.gdata.HealthClient.ServiceException;
@@ -85,11 +84,15 @@ public final class HealthAndroidExample extends Activity {
   private final HealthClient client = new GDataHealthClient(SERVICE_NAME);
 
   private Map<String, String> profiles = new LinkedHashMap<String, String>();
+  private String profileId;
 
   private List<Result> results;
 
   private AuthManager auth;
   private Account account;
+
+  private Button deleteResultsButton;
+  private ListView resultsListView;
 
   @SuppressWarnings("unchecked")
   private AsyncTask currentTask;
@@ -97,7 +100,7 @@ public final class HealthAndroidExample extends Activity {
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.main_view);
+    setContentView(R.layout.main);
 
     // Configure the buttons
     Button button = (Button) findViewById(R.id.main_accounts);
@@ -126,6 +129,31 @@ public final class HealthAndroidExample extends Activity {
     button.setOnClickListener(new View.OnClickListener() {
       public void onClick(View v) {
         retrieveResults();
+      }
+    });
+
+    // Button is a class variable so the ListView click handler can access it.
+    deleteResultsButton = (Button) findViewById(R.id.main_delete_results);
+    deleteResultsButton.setEnabled(false);
+    deleteResultsButton.setOnClickListener(new View.OnClickListener() {
+      public void onClick(View v) {
+        int position = resultsListView.getCheckedItemPosition();
+        resultsListView.setItemChecked(position, false);
+        deleteResultsButton.setEnabled(false);
+        Result result = (Result) resultsListView.getItemAtPosition(position);
+
+        showDialog(DIALOG_PROGRESS);
+        currentTask = new DeleteResultsTask().execute(result);
+      }
+    });
+
+    resultsListView = (ListView) findViewById(R.id.main_list);
+    resultsListView.setOnItemClickListener(new OnItemClickListener() {
+      @Override
+      public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        // Allows the last item to be unchecked.
+        resultsListView.setItemChecked(position, !((CheckedTextView)view).isChecked());
+        deleteResultsButton.setEnabled(!deleteResultsButton.isEnabled());
       }
     });
 
@@ -191,11 +219,11 @@ public final class HealthAndroidExample extends Activity {
           // list items.
           removeDialog(DIALOG_PROFILES);
 
-          String pid = profiles.keySet().toArray(new String[profiles.size()])[i];
-          client.setProfileId(pid);
+          profileId = profiles.keySet().toArray(new String[profiles.size()])[i];
+          client.setProfileId(profileId);
 
           Button button = (Button) findViewById(R.id.main_profiles);
-          button.setText(profiles.get(pid));
+          button.setText(profiles.get(profileId));
 
           retrieveResults();
         }
@@ -366,6 +394,16 @@ public final class HealthAndroidExample extends Activity {
    * Retrieve a list of test results from Health.
    */
   protected void retrieveResults() {
+    if (account == null) {
+      chooseAccount();
+      return;
+    }
+
+    if (profileId == null) {
+      chooseProfile();
+      return;
+    }
+
     showDialog(DIALOG_PROGRESS);
     currentTask = new RetrieveResultsTask().execute();
   }
@@ -374,34 +412,19 @@ public final class HealthAndroidExample extends Activity {
    * Display results in the main activity's test result list.
    */
   protected void displayResults() {
-    Log.d(LOG_TAG, "Displaying results.");
+    Log.d(LOG_TAG, "Displaying test results.");
     // Collect the Tests from the Results and order them chronologically.
-    Set<Test> tests = new TreeSet<Test>();
-    for (Result result : results) {
-      // If the Test is missing it's date, then assign the Result date.
-      for (Test test : result.getTests()) {
-        if (test.getDate() == null) {
-          test.setDate(result.getDate());
-        }
-      }
-      tests.addAll(result.getTests());
-    }
-    Test[] items = tests.toArray(new Test[tests.size()]);
+    Set<Result> resultSet = new TreeSet<Result>();
+    resultSet.addAll(results);
+    Result[] items = resultSet.toArray(new Result[resultSet.size()]);
 
-    // Update the text view of the main activity with the list of test results.
-    ListView lv = (ListView) findViewById(R.id.main_results);
-    lv.setAdapter(new ArrayAdapter<Test>(this, R.layout.results_list_item, items));
-
-    lv.setOnItemClickListener(new OnItemClickListener() {
-      public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        Toast.makeText(getApplicationContext(), ((TextView) view).getText(), Toast.LENGTH_SHORT)
-            .show();
-      }
-    });
+    // Update the list view of the main activity with the list of test results.
+    resultsListView.setAdapter(new ArrayAdapter<Result>(this, R.layout.main_list_item, items));
 
     // Display a notice if not results found.
     if (items.length == 0) {
-      Toast.makeText(getApplicationContext(), "No test results in profile.", Toast.LENGTH_LONG).show();
+      Toast.makeText(getApplicationContext(), this.getString(R.string.no_test_results),
+          Toast.LENGTH_LONG).show();
     }
   }
 
@@ -424,7 +447,7 @@ public final class HealthAndroidExample extends Activity {
       chooseProfile();
     } else if (e instanceof ServiceException) {
       if (e.getCause() != null) {
-        // Likely no network connectivity.
+        // Likely network connectivity issue.
         Log.e(LOG_TAG, "Error connecting to Health service.", e);
       } else {
         ServiceException se = (ServiceException) e;
@@ -459,6 +482,33 @@ public final class HealthAndroidExample extends Activity {
       }
 
       Log.d(LOG_TAG, "Result created.");
+      retrieveResults();
+    }
+  }
+
+  protected class DeleteResultsTask extends AsyncTask<Result, Void, Void> {
+    private Exception exception;
+
+    @Override
+    protected Void doInBackground(Result... results) {
+      Log.d(LOG_TAG, "Deleting results.");
+      try {
+        for (Result result : results) {
+          client.deleteResult(result);
+        }
+      } catch (Exception e) {
+        exception = e;
+      }
+      return null;
+    }
+
+    protected void onPostExecute(Void result) {
+      if (exception != null) {
+        handleException(exception);
+        return;
+      }
+
+      Log.d(LOG_TAG, "Results deleted.");
       retrieveResults();
     }
   }
