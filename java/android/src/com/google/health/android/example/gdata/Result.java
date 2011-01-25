@@ -1,12 +1,12 @@
 /*
  * Copyright (c) 2010 Google Inc.
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -20,13 +20,16 @@ import java.util.LinkedList;
 import java.util.List;
 
 @SuppressWarnings("serial")
-public class Result extends CCRObject {
+public class Result extends CCRObject implements Comparable<Result> {
 
   private String name;
   private String date;
-  private List<Test> tests = new LinkedList<Test>();
+  private List<TestResult> testResults = new LinkedList<TestResult>();
 
   public String getName() {
+    if (name == null && testResults.size() > 0) {
+      name = testResults.get(0).getName();
+    }
     return name;
   }
 
@@ -35,6 +38,9 @@ public class Result extends CCRObject {
   }
 
   public String getDate() {
+    if (date == null && testResults.size() > 0) {
+      date = testResults.get(0).getDate();
+    }
     return date;
   }
 
@@ -42,16 +48,26 @@ public class Result extends CCRObject {
     this.date = date;
   }
 
-  public void addTest(Test test) {
-    tests.add(test);
+  public void addTestResult(TestResult test) {
+    testResults.add(test);
   }
 
-  public List<Test> getTests() {
-    return tests;
+  public List<TestResult> getTestResults() {
+    return testResults;
   }
 
-  public void setTests(List<Test> tests) {
-    this.tests = tests;
+  public void setTestResults(List<TestResult> tests) {
+    this.testResults = tests;
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    // Simply return the tests in a single string; acceptable since they're 1:1 now.
+    for (TestResult test : testResults) {
+      sb.append(test.toString() + "\n");
+    }
+    return sb.toString().trim();
   }
 
   @Override
@@ -66,12 +82,27 @@ public class Result extends CCRObject {
       sb.append(String.format(DESCRIPTION, name));
     }
 
-    for (Test test : tests) {
+    for (TestResult test : testResults) {
       sb.append(test.toCCR());
     }
 
     sb.append("</Result>");
 
     return sb.toString();
+  }
+
+  @Override
+  public int compareTo(Result result) {
+    int x = 0;
+    if (getDate() != null) {
+      x = getDate().compareTo(result.getDate());
+    }
+    if (x == 0 && getName() != null) {
+      x = getName().compareTo(result.getName());
+    }
+    if (x == 0) {
+      x = -1;
+    }
+    return x;
   }
 }

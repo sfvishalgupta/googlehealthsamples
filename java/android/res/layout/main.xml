@@ -30,34 +30,48 @@
       android:text="@string/profile"
       android:textSize="12sp"/>
   </RelativeLayout>
+
   <ListView
+    android:id="@+id/main_list"
     android:layout_width="fill_parent"
-    android:id="@+id/main_results"
     android:layout_height="wrap_content"
-    android:layout_weight="1"/>
-  <RelativeLayout
+    android:layout_weight="1"
+    android:choiceMode="singleChoice" />
+
+  <!-- Using TableLayout to get evenly spaced buttons. -->
+  <TableLayout
     android:background="#cccccc"
     android:layout_alignParentBottom="true"
-    android:layout_height="50dp"
     android:layout_width="fill_parent"
-    android:orientation="horizontal"
-    android:paddingRight="15px"
-    android:paddingLeft="15px"
-    android:paddingTop="5px"
-    android:paddingBottom="0px">
-    <Button
-      android:id="@+id/main_new_result"
-      android:layout_alignParentLeft="true"
+    android:layout_height="wrap_content"
+    android:layout_gravity="fill_vertical"
+    android:stretchColumns="*">
+    <TableRow
+      android:layout_weight="1"
       android:layout_height="wrap_content"
       android:layout_width="wrap_content"
-      android:text="@string/new_result"
-      android:textSize="12sp"/>
-    <Button
-      android:id="@+id/main_refresh"
-      android:layout_alignParentRight="true"
-      android:layout_height="wrap_content"
-      android:layout_width="wrap_content"
-      android:text="@string/refresh_results"
-      android:textSize="12sp"/>
-  </RelativeLayout>
+      android:paddingTop="3dp">
+      <Button
+        android:id="@+id/main_new_result"
+        android:layout_column="0"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="@string/new_result"
+        android:textSize="12sp"/>
+      <Button
+        android:id="@+id/main_delete_results"
+        android:layout_column="1"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="@string/delete_results"
+        android:textSize="12sp"/>
+      <Button
+        android:id="@+id/main_refresh"
+        android:layout_column="2"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:text="@string/refresh_results"
+        android:textSize="12sp"/>
+    </TableRow>
+  </TableLayout>
 </LinearLayout>

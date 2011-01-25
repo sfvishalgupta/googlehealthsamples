@@ -34,6 +34,7 @@ import javax.xml.parsers.SAXParserFactory;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -170,7 +171,7 @@ public class GDataHealthClient implements HealthClient {
       throw new IllegalStateException("profileId must not be null.");
     }
 
-    String url = service.getBaseURL() + "/profile/ui/" + profileId + "/-/labtest?digest=true";
+    String url = service.getBaseURL() + "/profile/ui/" + profileId + "/-/labtest";
     InputStream istream = retreiveData(url);
 
     CCRResultsHandler ccrHandler = new CCRResultsHandler();
@@ -224,6 +225,40 @@ public class GDataHealthClient implements HealthClient {
     return result;
   }
 
+  @Override
+  public void deleteResult(Result result) throws AuthenticationException, InvalidProfileException,
+      ServiceException {
+
+    if (authToken == null) {
+      throw new IllegalStateException("authToken must not be null");
+    }
+
+    if (profileId == null) {
+      throw new IllegalStateException("profileId must not be null.");
+    }
+
+    if (result.getId() == null) {
+      throw new IllegalArgumentException("Result must have an id.");
+    }
+
+    String url = service.getBaseURL() + "/profile/ui/" + profileId + "/" + result.getId();
+
+    HttpClient httpclient = new DefaultHttpClient();
+    HttpDelete httpdelete = new HttpDelete(url);
+    httpdelete.setHeader("Authorization", "GoogleLogin auth=" + authToken);
+    httpdelete.setHeader("Content-Type", "application/atom+xml");
+
+    try {
+      getResponseStream(httpclient, httpdelete);
+    } catch (ServiceException e) {
+      // If the result has already been deleted, ignore exception.
+      if (e.getCode() != 404) {
+        throw e;
+      }
+    }
+
+  }
+
   private InputStream retreiveData(String requestUrl) throws AuthenticationException,
       InvalidProfileException, ServiceException {
 
@@ -272,6 +307,8 @@ public class GDataHealthClient implements HealthClient {
       case 403:
         throw new InvalidProfileException();
 
+      case 404:
+        // Not found... returned when a result is deleted, but it no longer exists.
       default:
         throw new ServiceException(code, message, bufferData(entity.getContent()));
       }
