@@ -174,7 +174,7 @@ public class GDataHealthClient implements HealthClient {
     String url = service.getBaseURL() + "/profile/ui/" + profileId + "/-/labtest";
     InputStream istream = retreiveData(url);
 
-    CCRResultsHandler ccrHandler = new CCRResultsHandler();
+    HealthGDataContentHandler ccrHandler = new HealthGDataContentHandler();
     try {
       SAXParserFactory spf = SAXParserFactory.newInstance();
       SAXParser sp = spf.newSAXParser();
