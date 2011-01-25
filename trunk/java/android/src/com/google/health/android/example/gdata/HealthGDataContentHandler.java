@@ -30,7 +30,7 @@ import com.google.health.android.example.gdata.CCRObject.DateType;
  * Unsupported: CCRDataObjectIds (unused anyhow), Codes, NormalResults,
  * Source/Actors
  */
-public class CCRResultsHandler extends DefaultHandler {
+public class HealthGDataContentHandler extends DefaultHandler {
 
   private static final String ATOM_ID = "id";
 
